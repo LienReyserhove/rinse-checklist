@@ -1,6 +1,6 @@
 ---
 title: "Darwin Core mapping"
-subtitle: "For: Checklist of non-native freshwater fishes in Flanders, Belgium"
+subtitle: "For: Registry of non-native species in the Two Seas region countries (Great Britain, France, Belgium and the Netherlands)"
 author:
 - Lien Reyserhove
 - Peter Desmet
