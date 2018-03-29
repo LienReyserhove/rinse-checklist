@@ -13,21 +13,6 @@ output:
     number_sections: true
 ---
 
----
-title: "Darwin Core mapping"
-subtitle: "For: Checklist of non-native freshwater fishes in Flanders, Belgium"
-author:
-- Lien Reyserhove
-- Peter Desmet
-date: "`r Sys.Date()`"
-output:
-  html_document:
-    toc: true
-    toc_depth: 3
-    toc_float: true
-    number_sections: true
----
-
 This document describes how we map the checklist data to Darwin Core. The source file for this document can be found [here](https://github.com/trias-project/rinse-checklist/blob/master/data/raw/oo_30975.xlsx).
 
 # Setup
