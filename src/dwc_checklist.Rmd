@@ -69,7 +69,7 @@ raw_data %<>%
 
 To uniquely identify a taxon in the taxon core and reference taxa in the extensions, we need a `taxonID`. Since we need it in all generated files, we generate it here in the raw data frame. It is a combination of `dataset-shortname:taxon:` and a hash based on the scientific name. As long as the scientific name doesn't change, the ID will be stable.
 
-The scientific name should be the name in lowest level taxonomic rank that can be determined, which is the species name (genus + specificEpithet) here. This information is a compilation of `genus` and `species` in `raw_data`. We first generate `scientificName`:
+The scientific name should be the name in lowest level taxonomic rank that can be determined, which is the species name (genus + specificEpithet) here. This information is a compilation of `genus` and `species` in `raw_data`. We first generate `scientificName` by combining `genus` and `species`.
 
 ```{r}
 raw_data %<>% mutate(scientificName = paste(genus, species))
