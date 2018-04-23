@@ -36,6 +36,7 @@ library(magrittr)  # For %<>% pipes
 library(janitor)   # To clean input data
 library(readxl)    # To read Excel files
 library(digest)    # To generate hashes
+library(rgbif)     # Interface to the GBIF API
 ```
 
 Set file paths (all paths should be relative to this script):
@@ -69,10 +70,73 @@ raw_data %<>%
 
 To uniquely identify a taxon in the taxon core and reference taxa in the extensions, we need a `taxonID`. Since we need it in all generated files, we generate it here in the raw data frame. It is a combination of `dataset-shortname:taxon:` and a hash based on the scientific name. As long as the scientific name doesn't change, the ID will be stable.
 
-The scientific name should be the name in lowest level taxonomic rank that can be determined, which is the species name (genus + specificEpithet) here. This information is a compilation of `genus` and `species` in `raw_data`. We first generate `scientificName` by combining `genus` and `species`.
+The scientific name should be the name in lowest level taxonomic rank that can be determined, which is the species name (genus + specificEpithet) here. This information is a compilation of `genus` and `species` in `raw_data`. To determine the quality of these fields, we  paste `genus` and `species` together in `scientifcName` and we parse them with the GBIF nameparser. This will give us an impression of the quality of the scientificName
+
+Paste `genus` and `species` into `scientificName`:
 
 ```{r}
 raw_data %<>% mutate(scientificName = paste(genus, species))
+```
+
+Parse names:
+
+```{r}
+parsed_names <- parsenames(raw_data $ scientificName)
+```
+
+Retain the columns of interest to scan the quality (i.e `scientificName`, `type`, `parsed` and `rankmarker`)
+
+```{r}
+parsed_names %<>% select(scientificname, type, parsed, rankmarker) 
+```
+
+ScientificName contains different types of taxa:
+
+```{r, echo = FALSE}
+parsed_names %>% select(type, parsed, rankmarker) %>% 
+  group_by_all() %>% 
+  summarize(records = n())
+```
+
+We merge this information with `raw_data`:
+
+```{r}
+raw_data %<>%  left_join(parsed_names, by = c("scientificName" = "scientificname"))
+```
+
+Information with respect to the hybrids and the informal types of taxa might need some cleaning (see [this issue](https://github.com/trias-project/rinse-checklist/issues/3) on GitHub. We inspect these values:
+
+```{r}
+raw_data %>% select(scientificName, type) %>% 
+  filter(type == "INFORMAL" | type == "HYBRID") %>% 
+  arrange(type)
+```
+
+Within the `INFORMAL` group, we clean the data by removing the specificEpiphet `agg.` and `sp.` (which is the same thing as using the column `genus` for `scienticName`):
+
+```{r}
+raw_data %<>% mutate(scientificName_clean = case_when(
+  species == "agg." ~ genus,
+  species == "sp." ~ genus,
+  TRUE ~ scientificName))
+```
+
+Within the `HYBRID` group, some species also need some cleaning:
+
+```{r}
+raw_data %<>% mutate(scientificName_clean = recode(scientificName_clean,
+  "Brachyglottis x 'Sunshine'" =  "Brachyglottis 'Sunshine'",
+  "Cotoneaster x 'Hybridus pendulus'" = "Cotoneaster 'Hybridus pendulus'",
+  "Fuchsia x 'Corallina'" = "Fuchsia 'Corallina'",
+  "Symphytum x 'Hidcote Blue'" = "Symphytum 'Hidcote Blue'"))
+```
+
+Result of the cleaning step:
+
+```{r}
+raw_data %>% select(scientificName, scientificName_clean, type) %>% 
+  filter(type == "INFORMAL" | type == "HYBRID") %>% 
+  arrange(type)
 ```
 
 
