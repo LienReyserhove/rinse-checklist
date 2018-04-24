@@ -134,18 +134,19 @@ raw_data %<>% mutate(scientificName_clean = recode(scientificName_clean,
 Result of the cleaning step:
 
 ```{r}
-raw_data %>% select(scientificName, scientificName_clean, type) %>% 
+raw_data %>% select(scientificName_clean, type) %>% 
   filter(type == "INFORMAL" | type == "HYBRID") %>% 
   arrange(type)
 ```
 
+Create taxonID:
 
 ```{r}
 # Vectorize the digest function (The digest() function isn't vectorized. So if you pass in a vector, you get one value for the whole vector rather than a digest for each element of the vector):
 vdigest <- Vectorize(digest)
 
 # Generate taxonID:
-raw_data %<>% mutate(taxon_id = paste("rinse-checklist", "taxon", vdigest(scientificName, algo="md5"), sep = ":"))
+raw_data %<>% mutate(taxon_id = paste("rinse-checklist", "taxon", vdigest(scientificName_clean, algo="md5"), sep = ":"))
 ```
 
 ## Further pre-processing:
