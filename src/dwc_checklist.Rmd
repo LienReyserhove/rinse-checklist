@@ -112,26 +112,28 @@ raw_data %>% select(scientificName, type) %>%
   arrange(type)
 ```
 
-Within the `INFORMAL` group, we clean the data by removing the specificEpiphet `agg.` and `sp.` (which is the same thing as using the column `genus` for `scienticName`):
+Within the `INFORMAL` group, we clean information in `species` by removing the specificEpiphet `agg.` and `sp.:
 
 ```{r}
-raw_data %<>% mutate(scientificName_clean = case_when(
-  species == "agg." ~ genus,
-  species == "sp." ~ genus,
-  TRUE ~ scientificName))
+raw_data %<>% mutate(species_clean = case_when(
+  species == "agg." ~ "",
+  species == "sp." ~ "",
+  TRUE ~ species))
 ```
 
-Within the `HYBRID` group, some species also need some cleaning:
+Within the `HYBRID` group, some specificEpithet also need some cleaning:
 
 ```{r}
-raw_data %<>% mutate(scientificName_clean = recode(scientificName_clean,
-  "Brachyglottis x 'Sunshine'" =  "Brachyglottis 'Sunshine'",
-  "Cotoneaster x 'Hybridus pendulus'" = "Cotoneaster 'Hybridus pendulus'",
-  "Fuchsia x 'Corallina'" = "Fuchsia 'Corallina'",
-  "Symphytum x 'Hidcote Blue'" = "Symphytum 'Hidcote Blue'"))
+raw_data %<>% mutate(species_clean = case_when(
+  scientificName == "Brachyglottis x 'Sunshine'" ~  "'Sunshine'",
+  scientificName == "Cotoneaster x 'Hybridus pendulus'" ~ "'Hybridus pendulus'",
+  scientificName == "Fuchsia x 'Corallina'" ~ "'Corallina'",
+  scientificName == "Symphytum x 'Hidcote Blue'" ~ "'Hidcote Blue'"))
 ```
 
-Result of the cleaning step:
+Based on the cleaning of the species information, we generate `scientificName_clean`:
+
+
 
 ```{r}
 raw_data %>% select(scientificName_clean, type) %>% 
