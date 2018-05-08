@@ -432,4 +432,80 @@ Information for `occurrenceStatus` is contained in `occurrence`, which contains 
 distribution %>% distinct(occurrence)
 ```
 
+The interpretation of this content can be found in the main article, section 5B. The interpretation is quite straightforward, but three cases require some explanation:
+
+ - present/extinct: non-native species listed as “present” by one source but as “extinct” by another source
+ - present/native: non-native species listed as "present” by one source but as “native” by another source
+ - present/native/extinct: not in section 5B, but most probably a mixture of the previous cases.
+ 
+ The information in `occurrence` can be mapped by combining `occurrenceStatus` and `establishmentMeans`:
+ 
+```{r, eval = FALSE}
+as.data.frame(matrix(
+  data = rbind(
+    c("extinct", "introduced", "absent"),
+    c("native", "native", "present"),
+    c("not confirmed", "introduced", "doubtful"),
+    c("present", "introduced", "present"),
+    c("present/extinct", "introduced", "doubtful"),
+    c("present/native", "doubtful", "present"),
+    c("present/not confirmed", "introduced", "doubtful"),
+    c("present/native/extinct", "doubtful", "doubtful")),
+    nrow = 8, ncol = 3, byrow = FALSE,
+    dimnames = list(c(1:8), c("occurrence", "establishmentMeans", "occurrenceStatus"))
+))
+```
+
+```{r}
+distribution %<>% mutate(occurrenceStatus = case_when(
+  occurrence == "extinct" ~ "absent",
+  occurrence == "native" ~ "present",
+  occurrence == "not confirmed" ~ "doubtful",
+  occurrence == "present" ~ "present", 
+  occurrence == "present/extinct" ~ "doubtful",
+  occurrence == "present/native" ~ "present",
+  occurrence == "present/not confirmed" ~ "doubtful",
+  occurrence == "present/native/extinct" ~ "doubtful")) 
+```
+
+### establishmentMeans
+
+```{r}
+distribution %<>% mutate(establishmentMeans = case_when(
+  occurrence == "extinct" ~ "introduced",
+  occurrence == "native" ~ "native",
+  occurrence == "not confirmed" ~ "introduced",
+  occurrence == "present" ~ "introduced", 
+  occurrence == "present/extinct" ~ "introduced",
+  occurrence == "present/native" ~ "doubtful",
+  occurrence == "present/not confirmed" ~ "introduced",
+  occurrence == "present/native/extinct" ~ "doubtful")) 
+```
+
+## Post-processing
+
+Remove the original columns:
+
+```{r}
+distribution %<>% select(-starts_with("raw_"), -country, -occurrence)
+```
+
+Sort on `taxonID`:
+
+```{r}
+distribution %<>% arrange(taxonID)
+```
+
+Preview data:
+
+```{r}
+distribution %>% head()
+```
+
+Save to CSV:
+
+```{r}
+write.csv(distribution, file = dwc_distribution_file, na = "", row.names = FALSE, fileEncoding = "UTF-8")
+```
+
 
