@@ -246,6 +246,12 @@ taxon %<>% mutate(accessRights = "http://www.inbo.be/en/norms-for-data-use")
 taxon %<>% mutate(datasetID = "")
 ```
 
+### institutionCode
+
+```{r}
+taxon %<>% mutate(institutionCode = "CU")
+```
+
 ### datasetName
 
 ```{r}
@@ -320,11 +326,41 @@ taxon %<>% mutate(class = raw_class)
 ### genus
 
 ```{r}
-taxon %<>% mutate(genus = raw_genus)
+taxon %<>% mutate(genus = raw_genus_clean)
+```
+
+### specificEpithet
+
+```{r}
+taxon %<>% mutate(specificEpithet = raw_specificEpithet_clean)
+```
+
+### infraspecificEpithet
+
+```{r}
+taxon %<>% mutate(infraspecificEpithet = raw_infraspecificEpithet_clean) 
+```
+
+### taxonRank
+
+`taxonRank` is provided by the GBIF nameparser function. However, information for genera, species aggregates and cultivars is not available. We map this information manually. We do not specify the taxonRank for hybrids as GBIF will indicate those as rank unknowns
+
+```{r}
+taxon %<>% mutate(taxonRank = case_when(
+  raw_species == "agg." ~ "speciesAggregate",
+  raw_species == "sp." | 
+    raw_species == "x" |
+    is.na(raw_species) ~ "genus",
+  raw_rankmarker == "sp." ~ "species",
+  raw_rankmarker == "infrasp." ~ "infraspecies",
+  raw_rankmarker == "cv." ~ "cultivar")) 
+```
+
+```{r}
+unique(taxon $ taxonRank)
 ```
 
 
-COMPLETE
 
 
 # Create distribution extension
