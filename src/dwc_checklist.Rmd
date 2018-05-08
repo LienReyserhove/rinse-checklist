@@ -569,7 +569,7 @@ species_profile %<>% mutate(isFreshwater = case_when(
     raw_environment == "freshwater+terrestrial" |
     raw_environment == "freshwater+terrestrial+marine" |
     raw_environment == "marine+freshwater" ~ "TRUE",
-    TRUE ~"FALSE"))
+  TRUE ~"FALSE"))
 ```
 
 ### isTerrestrial
@@ -577,9 +577,9 @@ species_profile %<>% mutate(isFreshwater = case_when(
 ```{r}
 species_profile %<>% mutate(isTerrestrial = case_when(
   raw_environment == "freshwater+terrestrial" | 
-  raw_environment == "freshwater+terrestrial+marine" | 
-  raw_environment == "terrestrial" |
-  raw_environment == "terrestrial+marine" ~ "TRUE",
+    raw_environment == "freshwater+terrestrial+marine" | 
+    raw_environment == "terrestrial" |
+    raw_environment == "terrestrial+marine" ~ "TRUE",
   TRUE ~"FALSE"
 ))
 ```
