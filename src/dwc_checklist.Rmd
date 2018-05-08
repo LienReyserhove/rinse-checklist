@@ -356,12 +356,25 @@ taxon %<>% mutate(taxonRank = case_when(
   raw_rankmarker == "cv." ~ "cultivar")) 
 ```
 
+## Post-processing
+
+Remove the original columns:
+
 ```{r}
-unique(taxon $ taxonRank)
+taxon %<>% select(-starts_with("raw_"))
 ```
 
+Preview data:
 
+```{r}
+taxon %>% head()
+```
 
+Save to CSV:
+
+```{r}
+write.csv(taxon, file = dwc_taxon_file, na = "", row.names = FALSE, fileEncoding = "UTF-8")
+```
 
 # Create distribution extension
 
