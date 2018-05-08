@@ -66,11 +66,15 @@ raw_data %<>%
   clean_names()               # Have sensible (lowercase) column names
 ```
 
-## Generate taxonID
+## Clean scientific names
 
-To uniquely identify a taxon in the taxon core and reference taxa in the extensions, we need a `taxonID`. Since we need it in all generated files, we generate it here in the raw data frame. It is a combination of `dataset-shortname:taxon:` and a hash based on the scientific name. As long as the scientific name doesn't change, the ID will be stable.
+The scientific name should be the name in lowest level taxonomic rank that can be determined, which is the species name (genus + specificEpithet) here. This information is a compilation of `genus` and `species` in `raw_data`. Before we assign a taxonID to these scientific names, we need to clean this information. We do this stepwise:
 
-The scientific name should be the name in lowest level taxonomic rank that can be determined, which is the species name (genus + specificEpithet) here. This information is a compilation of `genus` and `species` in `raw_data`. To determine the quality of these fields, we  paste `genus` and `species` together in `scientifcName` and we parse them with the GBIF nameparser. This will give us an impression of the quality of the scientificName
+1. Paste `genus` and `species` together in `scientifcName` 
+2. Parse `scientificName` with the GBIF nameparser. This output of this function give us an impression of the quality of the generated `scientificName` (see further)
+3. Screen quality of `scientificName` on predefined criteria
+4. Generate `scientificName_clean` 
+5. Generate `genus_clean`, `species_clean` and `infraspecificEpithet_clean` by the information provided by the nameparser function.
 
 Paste `genus` and `species` into `scientificName`:
 
@@ -84,56 +88,99 @@ Parse names:
 parsed_names <- parsenames(raw_data $ scientificName)
 ```
 
-Retain the columns of interest to scan the quality (i.e `scientificName`, `type`, `parsed` and `rankmarker`)
+For the cleaning of the scientific names, we screen on the following criteria:
+- `type`(should be scientific) OR
+- `parsed` (should be TRUE)  OR
+- `parsedpartially` (should be FALSE)  OR
+- `authorship` (should be empty)
 
 ```{r}
-parsed_names %<>% select(scientificname, type, parsed, rankmarker) 
-```
-
-ScientificName contains different types of taxa:
-
-```{r, echo = FALSE}
-parsed_names %>% select(type, parsed, rankmarker) %>% 
+parsed_names %>% mutate(authorship_empty = case_when(
+  is.na(authorship) ~ "NA",
+  !is.na(authorship) ~ "provided")) %>% 
+  select(type, parsed, parsedpartially, authorship_empty) %>% 
   group_by_all() %>% 
-  summarize(records = n())
+  summarize(count = n())
 ```
 
-We merge this information with `raw_data`:
+All scientificNames for which `type = SCIENTIFIC` AND `PARSED = TRUE` AND `parsedpartially = FALSE` AND `authorship_empty = NA` will not be screened (6571 records) for cleaning. This is an overview of the remaining scientific names to be screened:
 
 ```{r}
-raw_data %<>%  left_join(parsed_names, by = c("scientificName" = "scientificname"))
-```
-
-Information with respect to the hybrids and the informal types of taxa might need some cleaning (see [this issue](https://github.com/trias-project/rinse-checklist/issues/3) on GitHub. We inspect these values:
-
-```{r}
-raw_data %>% select(scientificName, type) %>% 
-  filter(type == "INFORMAL" | type == "HYBRID") %>% 
+parsed_names %>% select(scientificname, genusorabove, specificepithet, infraspecificepithet, type, parsed, parsedpartially, authorship, rankmarker) %>% 
+  filter(!(type == "SCIENTIFIC" & parsed == "TRUE" & parsedpartially == "FALSE" & is.na(authorship))) %>% 
   arrange(type)
 ```
 
-Within the `INFORMAL` group, we clean information in `species` by removing the specificEpiphet `agg.` and `sp.:
-Within the `HYBRID` group, some specificEpithet also need some cleaning:
+The decisions for the cleaning steps are summarized in [this issue](https://github.com/trias-project/rinse-checklist/issues/3)
 
-
-```{r}
-raw_data %<>% mutate(species_clean = case_when(
-  species == "agg." ~ "",
-  species == "sp." ~ "",
-  scientificName == "Brachyglottis x 'Sunshine'" ~  "'Sunshine'",
-  scientificName == "Cotoneaster x 'Hybridus pendulus'" ~ "'Hybridus pendulus'",
-  scientificName == "Fuchsia x 'Corallina'" ~ "'Corallina'",
-  scientificName == "Symphytum x 'Hidcote Blue'" ~ "'Hidcote Blue'",
-  TRUE ~ species))
-```
-
-Based on the cleaning of the species information, we generate `scientificName_clean`:
+For some scientific names, we need information on `authorship` to clean them, so we merge this information with the raw dataset:
 
 ```{r}
-raw_data %<>% mutate(scientificName_clean = paste(genus, species_clean)) 
+# Select the necessary columns in `parsed_names`:
+parsed_names %<>% select(scientificname, authorship) 
+
+# Merge with raw_data:
+raw_data %<>% left_join(parsed_names, by = c("scientificName" = "scientificname"))
+
 ```
 
-Create taxonID:
+Generate `scientificName_clean`:
+
+```{r}
+raw_data %<>% mutate(scientificName_clean = case_when(
+   scientificName == "Brachyglottis x 'Sunshine'" ~ "Brachyglottis 'Sunshine'",
+   scientificName == "Cotoneaster x 'Hybridus pendulus'" ~ "Cotoneaster 'Hybridus pendulus'",
+   scientificName == "Fuchsia x 'Corallina'" ~ "Fuchsia 'Corallina'",
+   scientificName == "Symphytum x 'Hidcote Blue'" ~ "Symphytum 'Hidcote Blue'",
+   species == "agg." ~ genus,
+   species == "sp." ~ genus,
+   authorship == "Orientalis" ~ "Anchusa arvensis orientalis",
+   authorship == "Italicum" ~ "Arum italicum italicum",
+   authorship == "Officinalis" ~ "Asparagus officinalis officinalis",
+   authorship == "Oleifera" ~ "Brassica rapa oleifera",
+   authorship == "Rapa" ~ "Brassica rapa rapa",
+   authorship == "Inermis" ~ "Bromus inermis inermis",
+   authorship == "Glandulosa" ~ "Calamintha nepeta glandulosa",
+   authorship == "Carpatica" ~ "Anthyllis vulneraria carpatica",
+   is.na(species) ~ genus,
+   scientificName == "Rosa Hollandica'" ~ "Rosa 'Hollandica'",
+   scientificName == "Sedum Herbstfreude'" ~ "Sedum 'Herbstfreude'",
+   species == "x" ~ genus,
+   scientificName == "Lipeurus maculosusIschnocera" ~ "Lipeurus maculosus",
+   species == "n.a." ~ genus,
+   scientificName == "AseroÙ rubra" ~ "Asero rubra",
+   scientificName == "Cuprocyparis x leylandii hyb." ~ "Cuprocyparis x leylandii",
+   scientificName == "Larix x marschlinsii hyb." ~ "Larix x marschlinsii",
+   TRUE ~ scientificName))
+ 
+```
+
+We will now create `genus_clean`, `species_clean` and `infraspecificEpithet_clean` by applying the nameparser on `scientificName_clean`:
+
+```{r}
+parsed_names_clean <- parsenames(raw_data $ scientificName_clean)
+```
+
+Select required columns:
+
+```{r}
+parsed_names_clean %<>% select(scientificname, type, genusorabove, specificepithet, infraspecificepithet, rankmarker) 
+```
+
+Merge `parsed_names_clean` with `raw_data`:
+
+```{r}
+raw_data %<>% left_join(parsed_names_clean, by = c("scientificName_clean" = "scientificname")) 
+```
+
+Rename column names:
+
+```{r}
+raw_data %<>% rename(genus_clean = genusorabove,
+                     specificEpithet_clean = specificepithet,
+                     infraspecificEpithet_clean = infraspecificepithet) 
+```
+
 
 ```{r}
 # Vectorize the digest function (The digest() function isn't vectorized. So if you pass in a vector, you get one value for the whole vector rather than a digest for each element of the vector):
