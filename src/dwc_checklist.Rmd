@@ -46,7 +46,9 @@ Set file paths (all paths should be relative to this script):
 raw_data_file = "../data/raw/oo_30975.xlsx"
 
 # Processed files:
-
+dwc_taxon_file = "../data/processed/taxon.csv"
+dwc_distribution_file = "../data/processed/distribution.csv"
+dwc_profile_file = "../data/processed/speciesprofile.csv"
 ```
 
 # Read and pre-process raw data
@@ -391,7 +393,7 @@ distribution <- raw_data
 ### taxonID
 
 ```{r}
-distribution %<>% mutate(taxonID = ) 
+distribution %<>% mutate(taxonID = raw_taxon_id) 
 ```
 
 Information for `locationID`, `locality`, `countrycode` and `occurrenceStatus` can be found in the columns `raw_great_brittain`, `raw_france`, `raw_belgium` and `raw_netherlands`, which represent the occurrence for each taxon in each country. For further mapping, we need to integrate the country information in one column `country` and the occurrence information in a second column:
@@ -409,7 +411,6 @@ distribution %<>% mutate(country = recode(country,
     raw_belgium        = "Belgium",
     raw_netherlands    = "The Netherlands"))
 ```
-
 
 ### locationID
 
