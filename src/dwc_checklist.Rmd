@@ -264,6 +264,59 @@ taxon %<>% mutate(taxonID = raw_taxon_id)
 taxon %<>% mutate(scientificName = raw_scientificName_clean)
 ```
 
+### kingdom
+
+Information on the kingdoms is not available in the raw data. However, we can derive it form the field `raw_phylum_division` using rgbif.
+
+For this, we need to save all phyla in a separate dataframe: 
+
+```{r}
+phylum <- taxon %>% distinct(raw_phylum_division)
+```
+
+```{r, echo=FALSE}
+(phylum)
+```
+
+We remove `Vira` from the list as this is there's no kingdom for this group.
+
+```{r}
+phylum %<>% filter(raw_phylum_division != "Vira") 
+```
+
+Select `kingdkom` using rgbif:
+
+```{r}
+phylum %<>% rowwise() %>%
+ mutate(kingdom = name_usage(name = raw_phylum_division, 
+                             return = "data")  %>% 
+          select(kingdom) %>% 
+          filter(!is.na(kingdom)) %>%
+          count(kingdom) %>%
+          filter(n == max(n)) %>%
+          slice(1L) %>%
+          pull(kingdom)) %>%
+ ungroup()
+```
+
+Merge `phylum` with `taxon`:
+
+```{r}
+taxon %<>% left_join(phylum, by = "raw_phylum_division")
+```
+
+### phylum
+
+```{r}
+taxon %<>% mutate(phylum = raw_phylum_division) 
+```
+
+### class
+
+```{r}
+taxon %<>% mutate(class = raw_class) 
+```
+
 ### genus
 
 ```{r}
