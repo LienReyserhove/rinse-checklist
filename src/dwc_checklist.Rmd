@@ -621,5 +621,14 @@ Save to CSV:
 write.csv(species_profile, file = dwc_profile_file, na = "", row.names = FALSE, fileEncoding = "UTF-8")
 ```
 
+TO BE DELETED:
+
+Filter duplicates code:
+
+```{r}
+a <- which(duplicated(raw_data $ scientificName) == TRUE)
+s <- raw_data %>% slice(a) %>% select(scientificName)
+d <- raw_data %>% filter(scientificName %in% s$scientificName)
+```
 
 
