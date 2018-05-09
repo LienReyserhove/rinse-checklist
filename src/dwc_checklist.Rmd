@@ -46,9 +46,9 @@ Set file paths (all paths should be relative to this script):
 raw_data_file = "../data/raw/oo_30975.xlsx"
 
 # Processed files:
-dwc_taxon_file = "../data/processed/taxon.csv"
-dwc_distribution_file = "../data/processed/distribution.csv"
-dwc_profile_file = "../data/processed/speciesprofile.csv"
+dwc_taxon_file = "../data/processed/dwc_checklist_neobiota/taxon.csv"
+dwc_distribution_file = "../data/processed/dwc_checklist_neobiota/distribution.csv"
+dwc_profile_file = "../data/processed/dwc_checklist_neobiota/speciesprofile.csv"
 ```
 
 # Read and pre-process raw data
