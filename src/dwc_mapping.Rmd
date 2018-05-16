@@ -258,7 +258,7 @@ taxon %<>% mutate(institutionCode = "CU")
 ### datasetName
 
 ```{r}
-taxon %<>% mutate(datasetName = "Registry of non-native species in the Two Seas region countries (Great Britain, France, Belgium and the Netherlands")
+taxon %<>% mutate(datasetName = "RINSE - Registry of non-native species in the Two Seas region countries (Great Britain, France, Belgium and the Netherlands)")
 ```
 
 ### taxonID
