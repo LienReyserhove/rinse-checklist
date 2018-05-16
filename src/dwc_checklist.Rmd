@@ -639,7 +639,7 @@ TO BE DELETED:
 Filter duplicates code:
 
 ```{r}
-a <- which(duplicated(raw_data $ scientificName) == TRUE)
-s <- raw_data %>% slice(a) %>% select(scientificName)
-d <- raw_data %>% filter(scientificName %in% s$scientificName)
+a <- which(duplicated(raw_data$raw_scientificName) == TRUE)
+s <- raw_data %>% slice(a) %>% select(raw_scientificName)
+d <- raw_data %>% filter(raw_scientificName %in% s$raw_scientificName)
 ```
