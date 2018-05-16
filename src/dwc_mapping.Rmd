@@ -160,6 +160,18 @@ raw_data %<>% mutate(scientificName_clean = case_when(
 ))
 ```
 
+Several scientific names contain double whitespaces:
+
+```{r}
+taxon %>% select(scientificName) %>% filter(str_detect(taxon $ scientificName, "\\s{2}"))
+```
+
+Clean these scientific names:
+
+```{r}
+taxon %<>% mutate(scientificName = str_replace_all(scientificName, "\\s{2}", " ")) 
+```
+
 We will now create `genus_clean`, `species_clean` and `infraspecificEpithet_clean` by applying the nameparser on `scientificName_clean`:
 
 ```{r}
