@@ -243,12 +243,6 @@ taxon %<>% mutate(rightsHolder = "University of Cambridge")
 
 ```
 
-### accessRights
-
-```{r}
-taxon %<>% mutate(accessRights = "http://www.inbo.be/en/norms-for-data-use")
-```
-
 ### datasetID
 
 ```{r}
