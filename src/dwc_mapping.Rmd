@@ -431,7 +431,7 @@ distribution %<>% mutate(country = recode(country,
 
 ```{r}
 distribution %<>% mutate(locationID = case_when(
-  country == "Great Britain"   ~ "ISO_3166-2:GB",
+  country == "Great Britain"   ~ "WGSRPD:GRB",
   country == "France"          ~ "ISO_3166-2:FR",
   country == "Belgium"         ~ "ISO_3166-2:BE",
   country == "The Netherlands" ~ "ISO_3166-2:NL"
