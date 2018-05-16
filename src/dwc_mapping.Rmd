@@ -362,7 +362,7 @@ taxon %<>% mutate(infraspecificEpithet = raw_infraspecificEpithet_clean)
 
 ```{r}
 taxon %<>% mutate(taxonRank = case_when(
-  raw_species == "agg." ~ "speciesAggregate",
+  raw_species == "agg." ~ "genus",
   raw_species == "sp." | 
     raw_species == "x" |
     is.na(raw_species) ~ "genus",
