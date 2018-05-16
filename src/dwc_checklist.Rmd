@@ -64,8 +64,8 @@ Clean the data somewhat: remove empty rows if present
 
 ```{r}
 raw_data %<>%
-  remove_empty("rows") %>%     # Remove empty rows
-  clean_names()               # Have sensible (lowercase) column names
+  remove_empty("rows") %>%       # Remove empty rows
+  clean_names()                  # Have sensible (lowercase) column names
 ```
 
 ## Clean scientific names
@@ -91,15 +91,17 @@ parsed_names <- parsenames(raw_data $ scientificName)
 ```
 
 For the cleaning of the scientific names, we screen on the following criteria:
+
 - `type`(should be scientific) OR
 - `parsed` (should be TRUE)  OR
 - `parsedpartially` (should be FALSE)  OR
 - `authorship` (should be empty)
 
 ```{r}
-parsed_names %>% mutate(authorship_empty = case_when(
-  is.na(authorship) ~ "NA",
-  !is.na(authorship) ~ "provided")) %>% 
+parsed_names %>%
+  mutate(authorship_empty = case_when(
+    is.na(authorship) ~ "NA",
+    !is.na(authorship) ~ "provided")) %>% 
   select(type, parsed, parsedpartially, authorship_empty) %>% 
   group_by_all() %>% 
   summarize(count = n())
@@ -108,7 +110,8 @@ parsed_names %>% mutate(authorship_empty = case_when(
 All scientificNames for which `type = SCIENTIFIC` AND `PARSED = TRUE` AND `parsedpartially = FALSE` AND `authorship_empty = NA` will not be screened (6571 records) for cleaning. This is an overview of the remaining scientific names to be screened:
 
 ```{r}
-parsed_names %>% select(scientificname, genusorabove, specificepithet, infraspecificepithet, type, parsed, parsedpartially, authorship, rankmarker) %>% 
+parsed_names %>%
+  select(scientificname, genusorabove, specificepithet, infraspecificepithet, type, parsed, parsedpartially, authorship, rankmarker) %>% 
   filter(!(type == "SCIENTIFIC" & parsed == "TRUE" & parsedpartially == "FALSE" & is.na(authorship))) %>% 
   arrange(type)
 ```
@@ -123,44 +126,43 @@ parsed_names %<>% select(scientificname, authorship)
 
 # Merge with raw_data:
 raw_data %<>% left_join(parsed_names, by = c("scientificName" = "scientificname"))
-
 ```
 
 Generate `scientificName_clean`:
 
 ```{r}
 raw_data %<>% mutate(scientificName_clean = case_when(
-   scientificName == "Brachyglottis x 'Sunshine'" ~ "Brachyglottis 'Sunshine'",
-   scientificName == "Cotoneaster x 'Hybridus pendulus'" ~ "Cotoneaster 'Hybridus pendulus'",
-   scientificName == "Fuchsia x 'Corallina'" ~ "Fuchsia 'Corallina'",
-   scientificName == "Symphytum x 'Hidcote Blue'" ~ "Symphytum 'Hidcote Blue'",
-   species == "agg." ~ genus,
-   species == "sp." ~ genus,
-   authorship == "Orientalis" ~ "Anchusa arvensis orientalis",
-   authorship == "Italicum" ~ "Arum italicum italicum",
-   authorship == "Officinalis" ~ "Asparagus officinalis officinalis",
-   authorship == "Oleifera" ~ "Brassica rapa oleifera",
-   authorship == "Rapa" ~ "Brassica rapa rapa",
-   authorship == "Inermis" ~ "Bromus inermis inermis",
-   authorship == "Glandulosa" ~ "Calamintha nepeta glandulosa",
-   authorship == "Carpatica" ~ "Anthyllis vulneraria carpatica",
-   is.na(species) ~ genus,
-   scientificName == "Rosa Hollandica'" ~ "Rosa 'Hollandica'",
-   scientificName == "Sedum Herbstfreude'" ~ "Sedum 'Herbstfreude'",
-   species == "x" ~ genus,
-   scientificName == "Lipeurus maculosusIschnocera" ~ "Lipeurus maculosus",
-   species == "n.a." ~ genus,
-   scientificName == "AseroÙ rubra" ~ "Asero rubra",
-   scientificName == "Cuprocyparis x leylandii hyb." ~ "Cuprocyparis x leylandii",
-   scientificName == "Larix x marschlinsii hyb." ~ "Larix x marschlinsii",
-   TRUE ~ scientificName))
- 
+  scientificName == "Brachyglottis x 'Sunshine'" ~ "Brachyglottis 'Sunshine'",
+  scientificName == "Cotoneaster x 'Hybridus pendulus'" ~ "Cotoneaster 'Hybridus pendulus'",
+  scientificName == "Fuchsia x 'Corallina'" ~ "Fuchsia 'Corallina'",
+  scientificName == "Symphytum x 'Hidcote Blue'" ~ "Symphytum 'Hidcote Blue'",
+  species == "agg." ~ genus,
+  species == "sp." ~ genus,
+  authorship == "Orientalis" ~ "Anchusa arvensis orientalis",
+  authorship == "Italicum" ~ "Arum italicum italicum",
+  authorship == "Officinalis" ~ "Asparagus officinalis officinalis",
+  authorship == "Oleifera" ~ "Brassica rapa oleifera",
+  authorship == "Rapa" ~ "Brassica rapa rapa",
+  authorship == "Inermis" ~ "Bromus inermis inermis",
+  authorship == "Glandulosa" ~ "Calamintha nepeta glandulosa",
+  authorship == "Carpatica" ~ "Anthyllis vulneraria carpatica",
+  is.na(species) ~ genus,
+  scientificName == "Rosa Hollandica'" ~ "Rosa 'Hollandica'",
+  scientificName == "Sedum Herbstfreude'" ~ "Sedum 'Herbstfreude'",
+  species == "x" ~ genus,
+  scientificName == "Lipeurus maculosusIschnocera" ~ "Lipeurus maculosus",
+  species == "n.a." ~ genus,
+  scientificName == "AseroÙ rubra" ~ "Asero rubra",
+  scientificName == "Cuprocyparis x leylandii hyb." ~ "Cuprocyparis x leylandii",
+  scientificName == "Larix x marschlinsii hyb." ~ "Larix x marschlinsii",
+  TRUE ~ scientificName
+))
 ```
 
 We will now create `genus_clean`, `species_clean` and `infraspecificEpithet_clean` by applying the nameparser on `scientificName_clean`:
 
 ```{r}
-parsed_names_clean <- parsenames(raw_data $ scientificName_clean)
+parsed_names_clean <- parsenames(raw_data$scientificName_clean)
 ```
 
 Select required columns:
@@ -178,9 +180,11 @@ raw_data %<>% left_join(parsed_names_clean, by = c("scientificName_clean" = "sci
 Rename column names:
 
 ```{r}
-raw_data %<>% rename(genus_clean = genusorabove,
-                     specificEpithet_clean = specificepithet,
-                     infraspecificEpithet_clean = infraspecificepithet) 
+raw_data %<>% rename(
+  genus_clean = genusorabove,
+  specificEpithet_clean = specificepithet,
+  infraspecificEpithet_clean = infraspecificepithet
+)
 ```
 
 ## Create taxonID:
@@ -284,7 +288,7 @@ For this, we need to save all phyla in a separate dataframe:
 phylum <- taxon %>% distinct(raw_phylum_division)
 ```
 
-```{r, echo=FALSE}
+```{r, echo = FALSE}
 (phylum)
 ```
 
@@ -297,16 +301,16 @@ phylum %<>% filter(raw_phylum_division != "Vira")
 Select `kingdkom` using rgbif:
 
 ```{r}
-phylum %<>% rowwise() %>%
- mutate(kingdom = name_usage(name = raw_phylum_division, 
-                             return = "data")  %>% 
-          select(kingdom) %>% 
-          filter(!is.na(kingdom)) %>%
-          count(kingdom) %>%
-          filter(n == max(n)) %>%
-          slice(1L) %>%
-          pull(kingdom)) %>%
- ungroup()
+phylum %<>%
+  rowwise() %>%
+  mutate(kingdom = name_usage(name = raw_phylum_division, return = "data") %>% 
+  select(kingdom) %>% 
+  filter(!is.na(kingdom)) %>%
+  count(kingdom) %>%
+  filter(n == max(n)) %>%
+  slice(1L) %>%
+  pull(kingdom)) %>%
+  ungroup()
 ```
 
 Merge `phylum` with `taxon`:
@@ -357,7 +361,8 @@ taxon %<>% mutate(taxonRank = case_when(
     is.na(raw_species) ~ "genus",
   raw_rankmarker == "sp." ~ "species",
   raw_rankmarker == "infrasp." ~ "infraspecies",
-  raw_rankmarker == "cv." ~ "cultivar")) 
+  raw_rankmarker == "cv." ~ "cultivar"
+)) 
 ```
 
 ## Post-processing
@@ -408,20 +413,22 @@ Clean country names:
 
 ```{r}
 distribution %<>% mutate(country = recode(country,
-    raw_great_britain  = "Great Britain",
-    raw_france         = "France",
-    raw_belgium        = "Belgium",
-    raw_netherlands    = "The Netherlands"))
+  raw_great_britain  = "Great Britain",
+  raw_france         = "France",
+  raw_belgium        = "Belgium",
+  raw_netherlands    = "The Netherlands"
+))
 ```
 
 ### locationID
 
 ```{r}
 distribution %<>% mutate(locationID = case_when(
-    country == "Great Britain"   ~ "ISO_3166-2:GB",
-    country == "France"          ~ "ISO_3166-2:FR",
-    country == "Belgium"         ~ "ISO_3166-2:BE",
-    country == "The Netherlands" ~ "ISO_3166-2:NL"))
+  country == "Great Britain"   ~ "ISO_3166-2:GB",
+  country == "France"          ~ "ISO_3166-2:FR",
+  country == "Belgium"         ~ "ISO_3166-2:BE",
+  country == "The Netherlands" ~ "ISO_3166-2:NL"
+))
 ```
 
 ### locality
@@ -434,10 +441,11 @@ distribution %<>% mutate(locality = country)
 
 ```{r}
 distribution %<>% mutate(countryCode = case_when(
-    country == "Great Britain"   ~ "GB",
-    country == "France"          ~ "FR",
-    country == "Belgium"         ~ "BE",
-    country == "The Netherlands" ~ "NL")) 
+  country == "Great Britain"   ~ "GB",
+  country == "France"          ~ "FR",
+  country == "Belgium"         ~ "BE",
+  country == "The Netherlands" ~ "NL"
+)) 
 ```
 
 ### occurrenceStatus
@@ -450,11 +458,11 @@ distribution %>% distinct(occurrence)
 
 The interpretation of this content can be found in the main article, section 5B. The interpretation is quite straightforward, but three cases require some explanation:
 
- - present/extinct: non-native species listed as “present” by one source but as “extinct” by another source
- - present/native: non-native species listed as "present” by one source but as “native” by another source
- - present/native/extinct: not in section 5B, but most probably a mixture of the previous cases.
- 
- The information in `occurrence` can be mapped by combining `occurrenceStatus` and `establishmentMeans`:
+- present/extinct: non-native species listed as "present" by one source but as "extinct" by another source
+- present/native: non-native species listed as "present" by one source but as "native" by another source
+- present/native/extinct: not in section 5B, but most probably a mixture of the previous cases.
+
+The information in `occurrence` can be mapped by combining `occurrenceStatus` and `establishmentMeans`:
  
 ```{r, eval = FALSE}
 as.data.frame(matrix(
@@ -466,9 +474,10 @@ as.data.frame(matrix(
     c("present/extinct", "introduced", "doubtful"),
     c("present/native", "doubtful", "present"),
     c("present/not confirmed", "introduced", "doubtful"),
-    c("present/native/extinct", "doubtful", "doubtful")),
-    nrow = 8, ncol = 3, byrow = FALSE,
-    dimnames = list(c(1:8), c("occurrence", "establishmentMeans", "occurrenceStatus"))
+    c("present/native/extinct", "doubtful", "doubtful")
+  ),
+  nrow = 8, ncol = 3, byrow = FALSE,
+  dimnames = list(c(1:8), c("occurrence", "establishmentMeans", "occurrenceStatus"))
 ))
 ```
 
@@ -481,7 +490,8 @@ distribution %<>% mutate(occurrenceStatus = case_when(
   occurrence == "present/extinct" ~ "doubtful",
   occurrence == "present/native" ~ "present",
   occurrence == "present/not confirmed" ~ "doubtful",
-  occurrence == "present/native/extinct" ~ "doubtful")) 
+  occurrence == "present/native/extinct" ~ "doubtful"
+)) 
 ```
 
 ### establishmentMeans
@@ -495,7 +505,8 @@ distribution %<>% mutate(establishmentMeans = case_when(
   occurrence == "present/extinct" ~ "introduced",
   occurrence == "present/native" ~ "doubtful",
   occurrence == "present/not confirmed" ~ "introduced",
-  occurrence == "present/native/extinct" ~ "doubtful")) 
+  occurrence == "present/native/extinct" ~ "doubtful"
+)) 
 ```
 
 ## Post-processing
@@ -560,7 +571,8 @@ species_profile %<>% mutate(isMarine = case_when(
     raw_environment == "marine" | 
     raw_environment == "marine+freshwater" | 
     raw_environment == "terrestrial+marine" ~ "TRUE",
-  TRUE ~ "FALSE"))
+  TRUE ~ "FALSE"
+))
 ```
 
 ### isFreshwater
@@ -568,10 +580,11 @@ species_profile %<>% mutate(isMarine = case_when(
 ```{r}
 species_profile %<>% mutate(isFreshwater = case_when(
   raw_environment == "freshwater" | 
-    raw_environment == "freshwater+terrestrial" |
-    raw_environment == "freshwater+terrestrial+marine" |
-    raw_environment == "marine+freshwater" ~ "TRUE",
-  TRUE ~"FALSE"))
+  raw_environment == "freshwater+terrestrial" |
+  raw_environment == "freshwater+terrestrial+marine" |
+  raw_environment == "marine+freshwater" ~ "TRUE",
+  TRUE ~"FALSE"
+))
 ```
 
 ### isTerrestrial
@@ -579,9 +592,9 @@ species_profile %<>% mutate(isFreshwater = case_when(
 ```{r}
 species_profile %<>% mutate(isTerrestrial = case_when(
   raw_environment == "freshwater+terrestrial" | 
-    raw_environment == "freshwater+terrestrial+marine" | 
-    raw_environment == "terrestrial" |
-    raw_environment == "terrestrial+marine" ~ "TRUE",
+  raw_environment == "freshwater+terrestrial+marine" | 
+  raw_environment == "terrestrial" |
+  raw_environment == "terrestrial+marine" ~ "TRUE",
   TRUE ~"FALSE"
 ))
 ```
@@ -630,5 +643,3 @@ a <- which(duplicated(raw_data $ scientificName) == TRUE)
 s <- raw_data %>% slice(a) %>% select(scientificName)
 d <- raw_data %>% filter(scientificName %in% s$scientificName)
 ```
-
-
