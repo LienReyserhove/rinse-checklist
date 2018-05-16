@@ -491,7 +491,7 @@ distribution %<>% mutate(occurrenceStatus = case_when(
   occurrence == "present/native" ~ "present",
   occurrence == "present/not confirmed" ~ "doubtful",
   occurrence == "present/native/extinct" ~ "doubtful"
-)) 
+))
 ```
 
 ### establishmentMeans
