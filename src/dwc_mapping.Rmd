@@ -126,7 +126,10 @@ For some scientific names, we need information on `authorship` to clean them, so
 parsed_names %<>% select(scientificname, authorship) 
 
 # Merge with raw_data:
-raw_data %<>% left_join(parsed_names, by = c("scientificName" = "scientificname"))
+raw_data %<>% bind_cols(parsed_names)
+
+# Remove duplicate column
+raw_data %<>% select(-scientificname) 
 ```
 
 Generate `scientificName_clean`:
@@ -156,6 +159,7 @@ raw_data %<>% mutate(scientificName_clean = case_when(
   scientificName == "AseroÙ rubra" ~ "Asero rubra",
   scientificName == "Cuprocyparis x leylandii hyb." ~ "Cuprocyparis x leylandii",
   scientificName == "Larix x marschlinsii hyb." ~ "Larix x marschlinsii",
+  scientificName == "Acrophyllum dentatum" & phylum_division == "Bryophyta" ~ "Achrophyllum dentatum",
   TRUE ~ scientificName
 ))
 ```
@@ -163,13 +167,13 @@ raw_data %<>% mutate(scientificName_clean = case_when(
 Several scientific names contain double whitespaces:
 
 ```{r}
-taxon %>% select(scientificName) %>% filter(str_detect(taxon $ scientificName, "\\s{2}"))
+raw_data %>% select(scientificName_clean) %>% filter(str_detect(scientificName_clean, "\\s{2}"))
 ```
 
 Clean these scientific names:
 
 ```{r}
-taxon %<>% mutate(scientificName = str_replace_all(scientificName, "\\s{2}", " ")) 
+raw_data %<>% mutate(scientificName_clean = str_replace_all(scientificName_clean, "\\s{2}", " ")) 
 ```
 
 We will now create `genus_clean`, `species_clean` and `infraspecificEpithet_clean` by applying the nameparser on `scientificName_clean`:
@@ -187,7 +191,10 @@ parsed_names_clean %<>% select(scientificname, type, genusorabove, specificepith
 Merge `parsed_names_clean` with `raw_data`:
 
 ```{r}
-raw_data %<>% left_join(parsed_names_clean, by = c("scientificName_clean" = "scientificname")) 
+raw_data %<>% bind_cols(parsed_names_clean) 
+
+# Remove duplicate column `scientificname`:
+raw_data %<>% select(-scientificname) 
 ```
 
 Rename column names:
@@ -202,14 +209,17 @@ raw_data %<>% rename(
 
 ## Create taxonID:
 
-To uniquely identify a taxon in the taxon core and reference taxa in the extensions, we need a `taxonID`. Since we need it in all generated files, we generate it here in the raw data frame. It is a combination of `dataset-shortname:taxon:` and a hash based on the scientific name. As long as the scientific name doesn't change, the ID will be stable.
+To uniquely identify a taxon in the taxon core and reference taxa in the extensions, we need a `taxonID`. Since we need it in all generated files, we generate it here in the raw data frame. It is a combination of `dataset-shortname:taxon:` and a hash based on a combination of `scientificName_clean` and `phylum_division`.  We use this combination as one `scientificName` is associated with two different phyla (hemihomonym), i.e. `Elachista` can be both an algal species or a moth. As long as the scientific name + phylum combination doesn't change, the ID will be stable.
 
 ```{r}
 # Vectorize the digest function (The digest() function isn't vectorized. So if you pass in a vector, you get one value for the whole vector rather than a digest for each element of the vector):
 vdigest <- Vectorize(digest)
 
+# Generate scientificName_phylum column to deal with hemihomonym issue:
+raw_data %<>% mutate(scientificName_phylum = paste(scientificName_clean, phylum_division)) 
+
 # Generate taxonID:
-raw_data %<>% mutate(taxon_id = paste("rinse-checklist", "taxon", vdigest(scientificName_clean, algo="md5"), sep = ":"))
+raw_data %<>% mutate(taxon_id = paste("rinse-checklist", "taxon", vdigest(scientificName_phylum, algo="md5"), sep = ":"))
 ```
 
 ## Further pre-processing:
@@ -231,6 +241,23 @@ raw_data %>% head()
 ```{r start_taxon}
 taxon <- raw_data
 ```
+
+## Pre-processing
+
+Some taxa in the checklist are duplicated, i.e. they are found in two rows instead of one (see [this issue](https://github.com/trias-project/rinse-registry-checklist/issues/8)). This is because these taxa have two contrasting distribution records, depending on the consulted resource (data based solely on DAISIE portal and data based on all sources). In the taxon core, we only want one row per taxon.
+
+Identify taxa which have two distribution records:
+
+```{r}
+taxon[which(duplicated(taxon$raw_scientificName_clean)==TRUE), "raw_scientificName_clean"]
+```
+
+Remove the duplicated rows:
+
+```{r}
+
+```
+
 
 ## Term mapping
  
