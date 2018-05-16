@@ -249,15 +249,14 @@ Some taxa in the checklist are duplicated, i.e. they are found in two rows inste
 Identify taxa which have two distribution records:
 
 ```{r}
-taxon[which(duplicated(taxon$raw_scientificName_clean)==TRUE), "raw_scientificName_clean"]
+taxon %>% filter(duplicated(taxon$raw_scientificName_clean)==TRUE)
 ```
 
-Remove the duplicated rows:
+Remove duplicated rows:
 
 ```{r}
-
+taxon %<>% filter(duplicated(taxon$raw_scientificName_clean)==FALSE)
 ```
-
 
 ## Term mapping
  
@@ -541,6 +540,12 @@ distribution %<>% mutate(establishmentMeans = case_when(
   occurrence == "present/not confirmed" ~ "introduced",
   occurrence == "present/native/extinct" ~ "doubtful"
 )) 
+```
+
+### source
+
+```{r}
+distribution %<>% mutate(source = raw_notes) 
 ```
 
 ## Post-processing
