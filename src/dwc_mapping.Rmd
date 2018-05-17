@@ -394,7 +394,8 @@ taxon %<>% mutate(taxonRank = case_when(
     is.na(raw_species) ~ "genus",
   raw_rankmarker == "sp." ~ "species",
   raw_rankmarker == "infrasp." ~ "infraspecies",
-  raw_rankmarker == "cv." ~ "cultivar"
+  raw_rankmarker == "cv." ~ "cultivar",
+  raw_type == "HYBRID" ~ "hybrid"
 )) 
 ```
 
