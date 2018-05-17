@@ -244,7 +244,7 @@ taxon <- raw_data
 
 ## Pre-processing
 
-Some taxa in the checklist are duplicated, i.e. they are found in two rows instead of one (see [this issue](https://github.com/trias-project/rinse-registry-checklist/issues/8)). This is because these taxa have two contrasting distribution records, depending on the consulted resource (data based solely on DAISIE portal and data based on all sources). In the taxon core, we only want one row per taxon.
+Some taxa in the checklist are duplicated, i.e. they are found in two rows instead of one (see [this issue](https://github.com/trias-project/rinse-registry-checklist/issues/8)). This is because these taxa have two contrasting distribution records which depend on the consulted resource (data based solely on DAISIE portal and data based on all sources). In the taxon core, we only want one row per taxon.
 
 Identify taxa which have two distribution records:
 
@@ -582,6 +582,15 @@ In this extension will express broad habitat characteristics (e.g. `isTerrestria
 species_profile <- raw_data
 ```
 
+
+Similar as for the taxon core, we remove the duplicated taxa:
+
+Remove duplicated rows:
+
+```{r}
+species_profile %<>% filter(duplicated(species_profile$raw_scientificName_clean)==FALSE)
+```
+
 Show unique values:
 
 ```{r}
@@ -671,14 +680,4 @@ Save to CSV:
 
 ```{r}
 write.csv(species_profile, file = dwc_profile_file, na = "", row.names = FALSE, fileEncoding = "UTF-8")
-```
-
-TO BE DELETED:
-
-Filter duplicates code:
-
-```{r}
-a <- which(duplicated(raw_data$raw_scientificName) == TRUE)
-s <- raw_data %>% slice(a) %>% select(raw_scientificName)
-d <- raw_data %>% filter(raw_scientificName %in% s$raw_scientificName)
 ```
