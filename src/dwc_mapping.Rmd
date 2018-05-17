@@ -384,7 +384,7 @@ taxon %<>% mutate(infraspecificEpithet = raw_infraspecificEpithet_clean)
 
 ### taxonRank
 
-`taxonRank` is provided by the GBIF nameparser function. However, information for genera, species aggregates and cultivars is not available. We map this information manually. We do not specify the taxonRank for hybrids as GBIF will indicate those as rank unknowns
+`taxonRank` is provided by the GBIF nameparser function. However, information for genera, species aggregates and cultivars is not available. We map this information manually. 
 
 ```{r}
 taxon %<>% mutate(taxonRank = case_when(
