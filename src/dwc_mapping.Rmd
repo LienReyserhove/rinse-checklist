@@ -1,0 +1,684 @@
+---
+title: "Darwin Core mapping"
+subtitle: "For: Registry of non-native species in the Two Seas region countries (Great Britain, France, Belgium and the Netherlands)"
+author:
+- Lien Reyserhove
+- Peter Desmet
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    number_sections: true
+---
+
+This document describes how we map the checklist data to Darwin Core. The source file for this document can be found [here](https://github.com/trias-project/rinse-checklist/blob/master/data/raw/oo_30975.xlsx).
+test
+
+# Setup
+
+```{r setup, echo = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+Set locale (so we use UTF-8 character encoding):
+
+```{r}
+# This works on Mac OS X, might not work on other OS
+Sys.setlocale("LC_CTYPE", "en_US.UTF-8")
+```
+
+Load libraries:
+
+```{r}
+library(tidyverse) # To transform data
+library(magrittr)  # For %<>% pipes
+library(janitor)   # To clean input data
+library(readxl)    # To read Excel files
+library(digest)    # To generate hashes
+library(rgbif)     # Interface to the GBIF API
+```
+
+Set file paths (all paths should be relative to this script):
+ 
+```{r}
+# Raw files:
+raw_data_file = "../data/raw/oo_30975.xlsx"
+
+# Processed files:
+dwc_taxon_file = "../data/processed/taxon.csv"
+dwc_distribution_file = "../data/processed/distribution.csv"
+dwc_profile_file = "../data/processed/speciesprofile.csv"
+```
+
+# Read and pre-process raw data
+
+Create a data frame `raw_data` from the source data:
+
+```{r}
+# Read the source data:
+raw_data <- read_excel(raw_data_file, sheet = "Registry")
+```
+
+Clean the data somewhat: remove empty rows if present
+
+```{r}
+raw_data %<>%
+  remove_empty("rows") %>%       # Remove empty rows
+  clean_names()                  # Have sensible (lowercase) column names
+```
+
+## Clean scientific names
+
+The scientific name should be the name in lowest level taxonomic rank that can be determined, which is the species name (genus + specificEpithet) here. This information is a compilation of `genus` and `species` in `raw_data`. Before we assign a taxonID to these scientific names, we need to clean this information. We do this stepwise:
+
+1. Paste `genus` and `species` together in `scientifcName` 
+2. Parse `scientificName` with the GBIF nameparser. This output of this function give us an impression of the quality of the generated `scientificName` (see further)
+3. Screen quality of `scientificName` on predefined criteria
+4. Generate `scientificName_clean` 
+5. Generate `genus_clean`, `species_clean` and `infraspecificEpithet_clean` by the information provided by the nameparser function.
+
+Paste `genus` and `species` into `scientificName`:
+
+```{r}
+raw_data %<>% mutate(scientificName = paste(genus, species))
+```
+
+Parse names:
+
+```{r}
+parsed_names <- parsenames(raw_data $ scientificName)
+```
+
+For the cleaning of the scientific names, we screen on the following criteria:
+
+- `type`(should be scientific) OR
+- `parsed` (should be TRUE)  OR
+- `parsedpartially` (should be FALSE)  OR
+- `authorship` (should be empty)
+
+```{r}
+parsed_names %>%
+  mutate(authorship_empty = case_when(
+    is.na(authorship) ~ "NA",
+    !is.na(authorship) ~ "provided")) %>% 
+  select(type, parsed, parsedpartially, authorship_empty) %>% 
+  group_by_all() %>% 
+  summarize(count = n())
+```
+
+All scientificNames for which `type = SCIENTIFIC` AND `PARSED = TRUE` AND `parsedpartially = FALSE` AND `authorship_empty = NA` will not be screened (6571 records) for cleaning. This is an overview of the remaining scientific names to be screened:
+
+```{r}
+parsed_names %>%
+  select(scientificname, genusorabove, specificepithet, infraspecificepithet, type, parsed, parsedpartially, authorship, rankmarker) %>% 
+  filter(!(type == "SCIENTIFIC" & parsed == "TRUE" & parsedpartially == "FALSE" & is.na(authorship))) %>% 
+  arrange(type)
+```
+
+The decisions for the cleaning steps are summarized in [this issue](https://github.com/trias-project/rinse-checklist/issues/3)
+
+For some scientific names, we need information on `authorship` to clean them, so we merge this information with the raw dataset:
+
+```{r}
+# Select the necessary columns in `parsed_names`:
+parsed_names %<>% select(scientificname, authorship) 
+
+# Merge with raw_data:
+raw_data %<>% bind_cols(parsed_names)
+
+# Remove duplicate column
+raw_data %<>% select(-scientificname) 
+```
+
+Generate `scientificName_clean`:
+
+```{r}
+raw_data %<>% mutate(scientificName_clean = case_when(
+  scientificName == "Brachyglottis x 'Sunshine'" ~ "Brachyglottis 'Sunshine'",
+  scientificName == "Cotoneaster x 'Hybridus pendulus'" ~ "Cotoneaster 'Hybridus pendulus'",
+  scientificName == "Fuchsia x 'Corallina'" ~ "Fuchsia 'Corallina'",
+  scientificName == "Symphytum x 'Hidcote Blue'" ~ "Symphytum 'Hidcote Blue'",
+  species == "agg." ~ genus,
+  species == "sp." ~ genus,
+  authorship == "Orientalis" ~ "Anchusa arvensis orientalis",
+  authorship == "Italicum" ~ "Arum italicum italicum",
+  authorship == "Officinalis" ~ "Asparagus officinalis officinalis",
+  authorship == "Oleifera" ~ "Brassica rapa oleifera",
+  authorship == "Rapa" ~ "Brassica rapa rapa",
+  authorship == "Inermis" ~ "Bromus inermis inermis",
+  authorship == "Glandulosa" ~ "Calamintha nepeta glandulosa",
+  authorship == "Carpatica" ~ "Anthyllis vulneraria carpatica",
+  is.na(species) ~ genus,
+  scientificName == "Rosa Hollandica'" ~ "Rosa 'Hollandica'",
+  scientificName == "Sedum Herbstfreude'" ~ "Sedum 'Herbstfreude'",
+  species == "x" ~ genus,
+  scientificName == "Lipeurus maculosusIschnocera" ~ "Lipeurus maculosus",
+  species == "n.a." ~ genus,
+  scientificName == "AseroÙ rubra" ~ "Asero rubra",
+  scientificName == "Cuprocyparis x leylandii hyb." ~ "Cuprocyparis x leylandii",
+  scientificName == "Larix x marschlinsii hyb." ~ "Larix x marschlinsii",
+  scientificName == "Acrophyllum dentatum" & phylum_division == "Bryophyta" ~ "Achrophyllum dentatum",
+  TRUE ~ scientificName
+))
+```
+
+Several scientific names contain double whitespaces:
+
+```{r}
+raw_data %>% select(scientificName_clean) %>% filter(str_detect(scientificName_clean, "\\s{2}"))
+```
+
+Clean these scientific names:
+
+```{r}
+raw_data %<>% mutate(scientificName_clean = str_replace_all(scientificName_clean, "\\s{2}", " ")) 
+```
+
+We will now create `genus_clean`, `species_clean` and `infraspecificEpithet_clean` by applying the nameparser on `scientificName_clean`:
+
+```{r}
+parsed_names_clean <- parsenames(raw_data$scientificName_clean)
+```
+
+Select required columns:
+
+```{r}
+parsed_names_clean %<>% select(scientificname, type, genusorabove, specificepithet, infraspecificepithet, rankmarker) 
+```
+
+Merge `parsed_names_clean` with `raw_data`:
+
+```{r}
+raw_data %<>% bind_cols(parsed_names_clean) 
+
+# Remove duplicate column `scientificname`:
+raw_data %<>% select(-scientificname) 
+```
+
+Rename column names:
+
+```{r}
+raw_data %<>% rename(
+  genus_clean = genusorabove,
+  specificEpithet_clean = specificepithet,
+  infraspecificEpithet_clean = infraspecificepithet
+)
+```
+
+## Create taxonID:
+
+To uniquely identify a taxon in the taxon core and reference taxa in the extensions, we need a `taxonID`. Since we need it in all generated files, we generate it here in the raw data frame. It is a combination of `dataset-shortname:taxon:` and a hash based on a combination of `scientificName_clean` and `phylum_division`.  We use this combination as one `scientificName` is associated with two different phyla (hemihomonym), i.e. `Elachista` can be both an algal species or a moth. As long as the scientific name + phylum combination doesn't change, the ID will be stable.
+
+```{r}
+# Vectorize the digest function (The digest() function isn't vectorized. So if you pass in a vector, you get one value for the whole vector rather than a digest for each element of the vector):
+vdigest <- Vectorize(digest)
+
+# Generate scientificName_phylum column to deal with hemihomonym issue:
+raw_data %<>% mutate(scientificName_phylum = paste(scientificName_clean, phylum_division)) 
+
+# Generate taxonID:
+raw_data %<>% mutate(taxon_id = paste("rinse-checklist", "taxon", vdigest(scientificName_phylum, algo="md5"), sep = ":"))
+```
+
+## Further pre-processing:
+
+Add prefix `raw_` to all column names to avoid name clashes with Darwin Core terms:
+
+```{r}
+colnames(raw_data) <- paste0("raw_", colnames(raw_data))
+```
+
+Preview data:
+
+```{r}
+raw_data %>% head()
+```
+
+# Create taxon core
+
+```{r start_taxon}
+taxon <- raw_data
+```
+
+## Pre-processing
+
+Some taxa in the checklist are duplicated, i.e. they are found in two rows instead of one (see [this issue](https://github.com/trias-project/rinse-registry-checklist/issues/8)). This is because these taxa have two contrasting distribution records which depend on the consulted resource (data based solely on DAISIE portal and data based on all sources). In the taxon core, we only want one row per taxon.
+
+Identify taxa which have two distribution records:
+
+```{r}
+taxon %>% filter(duplicated(taxon$raw_scientificName_clean)==TRUE)
+```
+
+Remove duplicated rows:
+
+```{r}
+taxon %<>% filter(duplicated(taxon$raw_scientificName_clean)==FALSE)
+```
+
+## Term mapping
+ 
+Map the data to [Darwin Core Taxon](http://rs.gbif.org/core/dwc_taxon_2015-04-24.xml).
+
+### language
+ 
+```{r}
+taxon %<>% mutate(language = "en")
+```
+
+### license
+
+```{r}
+taxon %<>% mutate(license = "http://creativecommons.org/publicdomain/zero/1.0/")
+```
+
+### rightsHolder
+
+```{r}
+taxon %<>% mutate(rightsHolder = "University of Cambridge")
+
+```
+
+### datasetID
+
+```{r}
+taxon %<>% mutate(datasetID = "")
+```
+
+### institutionCode
+
+```{r}
+taxon %<>% mutate(institutionCode = "CU")
+```
+
+### datasetName
+
+```{r}
+taxon %<>% mutate(datasetName = "RINSE - Registry of non-native species in the Two Seas region countries (Great Britain, France, Belgium and the Netherlands)")
+```
+
+### taxonID
+
+```{r}
+taxon %<>% mutate(taxonID = raw_taxon_id)
+```
+
+### scientificName
+
+```{r}
+taxon %<>% mutate(scientificName = raw_scientificName_clean)
+```
+
+### kingdom
+
+Information on the kingdoms is not available in the raw data. However, we can derive it form the field `raw_phylum_division` using rgbif.
+
+For this, we need to save all phyla in a separate dataframe: 
+
+```{r}
+phylum <- taxon %>% distinct(raw_phylum_division)
+```
+
+```{r, echo = FALSE}
+(phylum)
+```
+
+We remove `Vira` from the list as this is there's no kingdom for this group.
+
+```{r}
+phylum %<>% filter(raw_phylum_division != "Vira") 
+```
+
+Select `kingdkom` using rgbif:
+
+```{r}
+phylum %<>%
+  rowwise() %>%
+  mutate(kingdom = name_usage(name = raw_phylum_division, return = "data") %>% 
+  select(kingdom) %>% 
+  filter(!is.na(kingdom)) %>%
+  count(kingdom) %>%
+  filter(n == max(n)) %>%
+  slice(1L) %>%
+  pull(kingdom)) %>%
+  ungroup()
+```
+
+Merge `phylum` with `taxon`:
+
+```{r}
+taxon %<>% left_join(phylum, by = "raw_phylum_division")
+```
+
+### phylum
+
+```{r}
+taxon %<>% mutate(phylum = raw_phylum_division) 
+```
+
+### class
+
+```{r}
+taxon %<>% mutate(class = raw_class) 
+```
+
+### genus
+
+```{r}
+taxon %<>% mutate(genus = raw_genus_clean)
+```
+
+### specificEpithet
+
+```{r}
+taxon %<>% mutate(specificEpithet = raw_specificEpithet_clean)
+```
+
+### infraspecificEpithet
+
+```{r}
+taxon %<>% mutate(infraspecificEpithet = raw_infraspecificEpithet_clean) 
+```
+
+### taxonRank
+
+`taxonRank` is provided by the GBIF nameparser function. However, information for genera, species aggregates and cultivars is not available. We map this information manually. 
+
+```{r}
+taxon %<>% mutate(taxonRank = case_when(
+  raw_species == "agg." ~ "genus",
+  raw_species == "sp." | 
+    raw_species == "x" |
+    is.na(raw_species) ~ "genus",
+  raw_rankmarker == "sp." ~ "species",
+  raw_rankmarker == "infrasp." ~ "infraspecies",
+  raw_rankmarker == "cv." ~ "cultivar",
+  raw_type == "HYBRID" ~ "hybrid"
+)) 
+```
+
+## Post-processing
+
+Remove the original columns:
+
+```{r}
+taxon %<>% select(-starts_with("raw_"))
+```
+
+Preview data:
+
+```{r}
+taxon %>% head()
+```
+
+Save to CSV:
+
+```{r}
+write.csv(taxon, file = dwc_taxon_file, na = "", row.names = FALSE, fileEncoding = "UTF-8")
+```
+
+# Create distribution extension
+
+Map the data to [Species Distribution](http://rs.gbif.org/extension/gbif/1.0/distribution.xml).
+
+## Pre-processing
+
+```{r}
+distribution <- raw_data
+```
+
+## Term mapping
+
+### taxonID
+
+```{r}
+distribution %<>% mutate(taxonID = raw_taxon_id) 
+```
+
+Information for `locationID`, `locality`, `countrycode` and `occurrenceStatus` can be found in the columns `raw_great_brittain`, `raw_france`, `raw_belgium` and `raw_netherlands`, which represent the occurrence for each taxon in each country. For further mapping, we need to integrate the country information in one column `country` and the occurrence information in a second column:
+
+```{r}
+distribution %<>% gather(country, occurrence, raw_great_britain, raw_france, raw_belgium, raw_netherlands, na.rm = TRUE) 
+```
+
+Clean country names:
+
+```{r}
+distribution %<>% mutate(country = recode(country,
+  raw_great_britain  = "Great Britain",
+  raw_france         = "France",
+  raw_belgium        = "Belgium",
+  raw_netherlands    = "The Netherlands"
+))
+```
+
+### locationID
+
+```{r}
+distribution %<>% mutate(locationID = case_when(
+  country == "Great Britain"   ~ "WGSRPD:GRB",
+  country == "France"          ~ "ISO_3166-2:FR",
+  country == "Belgium"         ~ "ISO_3166-2:BE",
+  country == "The Netherlands" ~ "ISO_3166-2:NL"
+))
+```
+
+### locality
+
+```{r}
+distribution %<>% mutate(locality = country) 
+```
+
+### countryCode
+
+```{r}
+distribution %<>% mutate(countryCode = case_when(
+  country == "Great Britain"   ~ "GB",
+  country == "France"          ~ "FR",
+  country == "Belgium"         ~ "BE",
+  country == "The Netherlands" ~ "NL"
+)) 
+```
+
+### occurrenceStatus
+
+Information for `occurrenceStatus` is contained in `occurrence`, which contains the following unique values:
+
+```{r}
+distribution %>% distinct(occurrence)
+```
+
+The interpretation of this content can be found in the main article, section 5B. The interpretation is quite straightforward, but three cases require some explanation:
+
+- present/extinct: non-native species listed as "present" by one source but as "extinct" by another source
+- present/native: non-native species listed as "present" by one source but as "native" by another source
+- present/native/extinct: not in section 5B, but most probably a mixture of the previous cases.
+
+The information in `occurrence` can be mapped by combining `occurrenceStatus` and `establishmentMeans`:
+ 
+```{r, eval = FALSE}
+as.data.frame(matrix(
+  data = rbind(
+    c("extinct", "introduced", "absent"),
+    c("native", "native", "present"),
+    c("not confirmed", "introduced", "doubtful"),
+    c("present", "introduced", "present"),
+    c("present/extinct", "introduced", "doubtful"),
+    c("present/native", "doubtful", "present"),
+    c("present/not confirmed", "introduced", "doubtful"),
+    c("present/native/extinct", "doubtful", "doubtful")
+  ),
+  nrow = 8, ncol = 3, byrow = FALSE,
+  dimnames = list(c(1:8), c("occurrence", "establishmentMeans", "occurrenceStatus"))
+))
+```
+
+```{r}
+distribution %<>% mutate(occurrenceStatus = case_when(
+  occurrence == "extinct" ~ "absent",
+  occurrence == "native" ~ "present",
+  occurrence == "not confirmed" ~ "doubtful",
+  occurrence == "present" ~ "present", 
+  occurrence == "present/extinct" ~ "doubtful",
+  occurrence == "present/native" ~ "present",
+  occurrence == "present/not confirmed" ~ "doubtful",
+  occurrence == "present/native/extinct" ~ "doubtful"
+))
+```
+
+### establishmentMeans
+
+```{r}
+distribution %<>% mutate(establishmentMeans = case_when(
+  occurrence == "extinct" ~ "introduced",
+  occurrence == "native" ~ "native",
+  occurrence == "not confirmed" ~ "introduced",
+  occurrence == "present" ~ "introduced", 
+  occurrence == "present/extinct" ~ "introduced",
+  occurrence == "present/native" ~ "doubtful",
+  occurrence == "present/not confirmed" ~ "introduced",
+  occurrence == "present/native/extinct" ~ "doubtful"
+)) 
+```
+
+### source
+
+```{r}
+distribution %<>% mutate(source = raw_notes) 
+```
+
+## Post-processing
+
+Remove the original columns:
+
+```{r}
+distribution %<>% select(-starts_with("raw_"), -country, -occurrence)
+```
+
+Sort on `taxonID`:
+
+```{r}
+distribution %<>% arrange(taxonID)
+```
+
+Preview data:
+
+```{r}
+distribution %>% head()
+```
+
+Save to CSV:
+
+```{r}
+write.csv(distribution, file = dwc_distribution_file, na = "", row.names = FALSE, fileEncoding = "UTF-8")
+```
+
+# Create species profile extension
+
+In this extension will express broad habitat characteristics (e.g. `isTerrestrial`) of the species. Habitat information can be found in `raw_environment`
+
+```{r start_species_profile}
+species_profile <- raw_data
+```
+
+
+Similar as for the taxon core, we remove the duplicated taxa:
+
+Remove duplicated rows:
+
+```{r}
+species_profile %<>% filter(duplicated(species_profile$raw_scientificName_clean)==FALSE)
+```
+
+Show unique values:
+
+```{r}
+species_profile %>%
+  distinct(raw_environment) %>%
+  arrange(raw_environment)
+```
+
+We map this information to `isFreshwater`, `isTerrestrial`, `isMarine` or a combination of these terms in the species profile extension.
+
+## Term mapping
+
+Map the data to [Species Profile](http://rs.gbif.org/extension/gbif/1.0/speciesprofile.xml).
+
+### taxonID
+
+```{r}
+species_profile %<>% mutate(taxonID = raw_taxon_id)
+```
+
+### isMarine
+
+```{r}
+species_profile %<>% mutate(isMarine = case_when(
+  raw_environment == "freshwater+terrestrial+marine" | 
+    raw_environment == "marine" | 
+    raw_environment == "marine+freshwater" | 
+    raw_environment == "terrestrial+marine" ~ "TRUE",
+  TRUE ~ "FALSE"
+))
+```
+
+### isFreshwater
+
+```{r}
+species_profile %<>% mutate(isFreshwater = case_when(
+  raw_environment == "freshwater" | 
+  raw_environment == "freshwater+terrestrial" |
+  raw_environment == "freshwater+terrestrial+marine" |
+  raw_environment == "marine+freshwater" ~ "TRUE",
+  TRUE ~"FALSE"
+))
+```
+
+### isTerrestrial
+
+```{r}
+species_profile %<>% mutate(isTerrestrial = case_when(
+  raw_environment == "freshwater+terrestrial" | 
+  raw_environment == "freshwater+terrestrial+marine" | 
+  raw_environment == "terrestrial" |
+  raw_environment == "terrestrial+marine" ~ "TRUE",
+  TRUE ~"FALSE"
+))
+```
+
+Show mapped values:
+
+```{r}
+species_profile %>%
+  select(raw_environment, isMarine, isFreshwater, isTerrestrial) %>%
+  group_by_all() %>%
+  summarize(records = n())
+```
+
+## Post-processing
+
+Remove the original columns:
+
+```{r}
+species_profile %<>% select(-starts_with("raw_"))
+```
+
+Sort on `taxonID`:
+
+```{r}
+species_profile %<>% arrange(taxonID)
+```
+
+Preview data:
+
+```{r}
+species_profile %>% head()
+```
+
+Save to CSV:
+
+```{r}
+write.csv(species_profile, file = dwc_profile_file, na = "", row.names = FALSE, fileEncoding = "UTF-8")
+```
