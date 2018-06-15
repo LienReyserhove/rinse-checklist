@@ -11,7 +11,7 @@ This repository contains the functionality to standardize the data of [Zieritz e
 ## Published datasets
 
 * [Dataset on the IPT](https://ipt.inbo.be/resource?r=rinse-registry-checklist)
-* Dataset on GBIF
+* [Dataset on GBIF](https://doi.org/10.15468/focajn)
 
 ## Repo structure
 
