@@ -286,7 +286,7 @@ taxon %<>% mutate(rightsHolder = "University of Cambridge")
 ### datasetID
 
 ```{r}
-taxon %<>% mutate(datasetID = "https://doi.org/10.3897/rio.3.e13414")
+taxon %<>% mutate(datasetID = "")
 ```
 
 ### institutionCode
