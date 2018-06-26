@@ -1,14 +1,14 @@
-name: "Registry of non-native species in the Two Seas region countries (Great Britain, France, Belgium and the Netherlands)"
+name: "RINSE - Registry of non-native species in the Two Seas region countries (Great Britain, France, Belgium and the Netherlands)"
 output_dir: "../docs"
 include: ["static/"]
 navbar:
-  title: "rinse-checklist"
+  title: "rinse-registry-checklist"
   left:
     - text: "Darwin Core mapping"
-      href: dwc_checklist.html
+      href: dwc_mapping.html
   right:
     - icon: fa-github fa-lg
-      href: https://github.com/trias-project/rinse-checklist
+      href: https://github.com/trias-project/rinse-registry-checklist
 output:
   html_document:
     theme: yeti
