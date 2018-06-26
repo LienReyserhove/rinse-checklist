@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Lien Reyserhove" />
+<meta name="author" content="Peter Desmet" />
+
+<meta name="date" content="2018-06-26" />
+
+<title>Darwin Core mapping</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/yeti.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="site_libs/pagedtable-1.1/js/pagedtable.js"></script>
+<link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+<link rel="stylesheet" href="static/css/trias.css" type="text/css" />
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 45px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 50px;
+  margin-top: -50px;
+}
+
+.section h2 {
+  padding-top: 50px;
+  margin-top: -50px;
+}
+.section h3 {
+  padding-top: 50px;
+  margin-top: -50px;
+}
+.section h4 {
+  padding-top: 50px;
+  margin-top: -50px;
+}
+.section h5 {
+  padding-top: 50px;
+  margin-top: -50px;
+}
+.section h6 {
+  padding-top: 50px;
+  margin-top: -50px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">rinse-registry-checklist</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="dwc_mapping.html">Darwin Core mapping</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/trias-project/rinse-registry-checklist">
+    <span class="fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Darwin Core mapping</h1>
+<h3 class="subtitle"><em>For: RINSE - Registry of non-native species in the Two Seas region countries (Great Britain, France, Belgium and the Netherlands)</em></h3>
+<h4 class="author"><em>Lien Reyserhove</em></h4>
+<h4 class="author"><em>Peter Desmet</em></h4>
+<h4 class="date"><em>2018-06-26</em></h4>
+
+</div>
+
+
+<p>This document describes how we map the checklist data to Darwin Core. The source file for this document can be found <a href="https://github.com/trias-project/rinse-registry-checklist/blob/master/src/dwc_mapping.Rmd">here</a>. test</p>
+<div id="setup" class="section level1">
+<h1><span class="header-section-number">1</span> Setup</h1>
+<p>Set locale (so we use UTF-8 character encoding):</p>
+<pre class="r"><code># This works on Mac OS X, might not work on other OS
+Sys.setlocale(&quot;LC_CTYPE&quot;, &quot;en_US.UTF-8&quot;)</code></pre>
+<pre><code>## [1] &quot;en_US.UTF-8&quot;</code></pre>
+<p>Load libraries:</p>
+<pre class="r"><code>library(tidyverse) # To transform data
+library(magrittr)  # For %&lt;&gt;% pipes
+library(janitor)   # To clean input data
+library(readxl)    # To read Excel files
+library(digest)    # To generate hashes
+library(rgbif)     # Interface to the GBIF API</code></pre>
+<p>Set file paths (all paths should be relative to this script):</p>
+<pre class="r"><code># Raw files:
+raw_data_file = &quot;../data/raw/oo_30975.xlsx&quot;
+
+# Processed files:
+dwc_taxon_file = &quot;../data/processed/taxon.csv&quot;
+dwc_distribution_file = &quot;../data/processed/distribution.csv&quot;
+dwc_profile_file = &quot;../data/processed/speciesprofile.csv&quot;</code></pre>
+</div>
+<div id="read-and-pre-process-raw-data" class="section level1">
+<h1><span class="header-section-number">2</span> Read and pre-process raw data</h1>
+<p>Create a data frame <code>raw_data</code> from the source data:</p>
+<pre class="r"><code># Read the source data:
+raw_data &lt;- read_excel(raw_data_file, sheet = &quot;Registry&quot;)</code></pre>
+<p>Clean the data somewhat: remove empty rows if present</p>
+<pre class="r"><code>raw_data %&lt;&gt;%
+  remove_empty(&quot;rows&quot;) %&gt;%       # Remove empty rows
+  clean_names()                  # Have sensible (lowercase) column names</code></pre>
+<div id="clean-scientific-names" class="section level2">
+<h2><span class="header-section-number">2.1</span> Clean scientific names</h2>
+<p>The scientific name should be the name in lowest level taxonomic rank that can be determined, which is the species name (genus + specificEpithet) here. This information is a compilation of <code>genus</code> and <code>species</code> in <code>raw_data</code>. Before we assign a taxonID to these scientific names, we need to clean this information. We do this stepwise:</p>
+<ol style="list-style-type: decimal">
+<li>Paste <code>genus</code> and <code>species</code> together in <code>scientifcName</code></li>
+<li>Parse <code>scientificName</code> with the GBIF nameparser. This output of this function give us an impression of the quality of the generated <code>scientificName</code> (see further)</li>
+<li>Screen quality of <code>scientificName</code> on predefined criteria</li>
+<li>Generate <code>scientificName_clean</code></li>
+<li>Generate <code>genus_clean</code>, <code>species_clean</code> and <code>infraspecificEpithet_clean</code> by the information provided by the nameparser function.</li>
+</ol>
+<p>Paste <code>genus</code> and <code>species</code> into <code>scientificName</code>:</p>
+<pre class="r"><code>raw_data %&lt;&gt;% mutate(scientificName = paste(genus, species))</code></pre>
+<p>Parse names:</p>
+<pre class="r"><code>parsed_names &lt;- parsenames(raw_data $ scientificName)</code></pre>
+<p>For the cleaning of the scientific names, we screen on the following criteria:</p>
+<ul>
+<li><code>type</code>(should be scientific) OR</li>
+<li><code>parsed</code> (should be TRUE) OR</li>
+<li><code>parsedpartially</code> (should be FALSE) OR</li>
+<li><code>authorship</code> (should be empty)</li>
+</ul>
+<pre class="r"><code>parsed_names %&gt;%
+  mutate(authorship_empty = case_when(
+    is.na(authorship) ~ &quot;NA&quot;,
+    !is.na(authorship) ~ &quot;provided&quot;)) %&gt;% 
+  select(type, parsed, parsedpartially, authorship_empty) %&gt;% 
+  group_by_all() %&gt;% 
+  summarize(count = n())</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["type"],"name":[1],"type":["chr"],"align":["left"]},{"label":["parsed"],"name":[2],"type":["lgl"],"align":["right"]},{"label":["parsedpartially"],"name":[3],"type":["lgl"],"align":["right"]},{"label":["authorship_empty"],"name":[4],"type":["chr"],"align":["left"]},{"label":["count"],"name":[5],"type":["int"],"align":["right"]}],"data":[{"1":"HYBRID","2":"FALSE","3":"FALSE","4":"__NA__","5":"45"},{"1":"INFORMAL","2":"TRUE","3":"FALSE","4":"__NA__","5":"27"},{"1":"INFORMAL","2":"TRUE","3":"TRUE","4":"__NA__","5":"1"},{"1":"SCIENTIFIC","2":"TRUE","3":"FALSE","4":"__NA__","5":"6570"},{"1":"SCIENTIFIC","2":"TRUE","3":"FALSE","4":"provided","5":"13"},{"1":"SCIENTIFIC","2":"TRUE","3":"TRUE","4":"__NA__","5":"3"},{"1":"SCIENTIFIC","2":"TRUE","3":"TRUE","4":"provided","5":"1"},{"1":"VIRUS","2":"FALSE","3":"FALSE","4":"__NA__","5":"1"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>All scientificNames for which <code>type = SCIENTIFIC</code> AND <code>PARSED = TRUE</code> AND <code>parsedpartially = FALSE</code> AND <code>authorship_empty = NA</code> will not be screened (6571 records) for cleaning. This is an overview of the remaining scientific names to be screened:</p>
+<pre class="r"><code>parsed_names %&gt;%
+  select(scientificname, genusorabove, specificepithet, infraspecificepithet, type, parsed, parsedpartially, authorship, rankmarker) %&gt;% 
+  filter(!(type == &quot;SCIENTIFIC&quot; &amp; parsed == &quot;TRUE&quot; &amp; parsedpartially == &quot;FALSE&quot; &amp; is.na(authorship))) %&gt;% 
+  arrange(type)</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["scientificname"],"name":[1],"type":["chr"],"align":["left"]},{"label":["genusorabove"],"name":[2],"type":["chr"],"align":["left"]},{"label":["specificepithet"],"name":[3],"type":["chr"],"align":["left"]},{"label":["infraspecificepithet"],"name":[4],"type":["chr"],"align":["left"]},{"label":["type"],"name":[5],"type":["chr"],"align":["left"]},{"label":["parsed"],"name":[6],"type":["lgl"],"align":["right"]},{"label":["parsedpartially"],"name":[7],"type":["lgl"],"align":["right"]},{"label":["authorship"],"name":[8],"type":["chr"],"align":["left"]},{"label":["rankmarker"],"name":[9],"type":["chr"],"align":["left"]}],"data":[{"1":"Acaena anserinifolia x inermis","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Aconitum napellus x variegatum","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Agrostis gigantea x stolonifera","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Artemisia verlotiorum x vulgaris","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Avena sativa x sterilis","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Brachyglottis x 'Sunshine'","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Chenopodium album x amaranticolor","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Chenopodium album x hircinum","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Chenopodium album x missouriense","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Chenopodium album x probstii","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Corylus avellana x maxima","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Cotoneaster x 'Hybridus pendulus'","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Crataegus heterophylla x monogyna","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Crocosmia aurea x pottsii","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Crocus tommasinianus x vernus","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Dianthus caryophyllus x gratianopolitanus","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Dianthus gratianopolitanus x plumarius","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Dipsacus fullonum x sativus","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Epilobium ciliatum x lanceolatum","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Festuca arundinacea x Lolium multiflorum","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Festuca rubra x Vulpia myuros","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Fuchsia x 'Corallina'","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Fumaria densiflora x officinalis","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Fumaria officinalis x parviflora","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Galanthus elwesii x nivalis","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Galanthus elwesii x plicatus","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Galanthus nivalis x plicatus","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Helianthus rigidus x tuberosus","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Heracleum mantegazzianum x sphondylium","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Juncus inflexus x pallidus","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Lupinus arboreus x nootkatensis x polyphyllus","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Lysichiton americanus x camtschatcensis","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Nothofagus nervosa x obliqua","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Oenothera biennis x cambrica","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Populus canadensis x jackii","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Populus jackii x nigra","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Quercus cerris x robur","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Rumex conglomeratus x patientia","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Rumex cristatus x palustris","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Sorbus aucuparia x intermedia","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Symphytum x 'Hidcote Blue'","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Tripleurospermum inodorum x maritimum","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Verbascum blattaria x phoeniceum","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Verbascum nigrum x pyramidatum","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Verbascum pyramidatum x thapsus","2":"NA","3":"NA","4":"NA","5":"HYBRID","6":"FALSE","7":"FALSE","8":"NA","9":"NA"},{"1":"Acmella agg.","2":"Acmella","3":"NA","4":"NA","5":"INFORMAL","6":"TRUE","7":"FALSE","8":"NA","9":"agg."},{"1":"Eucalyptus sp.","2":"Eucalyptus","3":"NA","4":"NA","5":"INFORMAL","6":"TRUE","7":"FALSE","8":"NA","9":"sp."},{"1":"Hosta agg.","2":"Hosta","3":"NA","4":"NA","5":"INFORMAL","6":"TRUE","7":"FALSE","8":"NA","9":"agg."},{"1":"Mimulus agg.","2":"Mimulus","3":"NA","4":"NA","5":"INFORMAL","6":"TRUE","7":"FALSE","8":"NA","9":"agg."},{"1":"Oenothera agg.","2":"Oenothera","3":"NA","4":"NA","5":"INFORMAL","6":"TRUE","7":"FALSE","8":"NA","9":"agg."},{"1":"Ptilotus agg.","2":"Ptilotus","3":"NA","4":"NA","5":"INFORMAL","6":"TRUE","7":"FALSE","8":"NA","9":"agg."},{"1":"Spiraea agg.","2":"Spiraea","3":"NA","4":"NA","5":"INFORMAL","6":"TRUE","7":"FALSE","8":"NA","9":"agg."},{"1":"Insulodrilus sp.","2":"Insulodrilus","3":"NA","4":"NA","5":"INFORMAL","6":"TRUE","7":"FALSE","8":"NA","9":"sp."},{"1":"Scolelepis cf. bonnieri","2":"Scolelepis","3":"bonnieri","4":"NA","5":"INFORMAL","6":"TRUE","7":"FALSE","8":"NA","9":"sp."},{"1":"Anastrepha sp.","2":"Anastrepha","3":"NA","4":"NA","5":"INFORMAL","6":"TRUE","7":"FALSE","8":"NA","9":"sp."},{"1":"Cerbalus sp.","2":"Cerbalus","3":"NA","4":"NA","5":"INFORMAL","6":"TRUE","7":"FALSE","8":"NA","9":"sp."},{"1":"Chaetanaphothrips sp.","2":"Chaetanaphothrips","3":"NA","4":"NA","5":"INFORMAL","6":"TRUE","7":"FALSE","8":"NA","9":"sp."},{"1":"Cyclorhipidion sp.","2":"Cyclorhipidion","3":"NA","4":"NA","5":"INFORMAL","6":"TRUE","7":"FALSE","8":"NA","9":"sp."},{"1":"Elachista sp.","2":"Elachista","3":"NA","4":"NA","5":"INFORMAL","6":"TRUE","7":"FALSE","8":"NA","9":"sp."},{"1":"Haplodrassus sp.","2":"Haplodrassus","3":"NA","4":"NA","5":"INFORMAL","6":"TRUE","7":"FALSE","8":"NA","9":"sp."},{"1":"Oinophila v-flava","2":"Oinophila","3":"NA","4":"NA","5":"INFORMAL","6":"TRUE","7":"TRUE","8":"NA","9":"var."},{"1":"Scyphophorus sp.","2":"Scyphophorus","3":"NA","4":"NA","5":"INFORMAL","6":"TRUE","7":"FALSE","8":"NA","9":"sp."},{"1":"Fusarium oxysporum f.","2":"Fusarium","3":"oxysporum","4":"NA","5":"INFORMAL","6":"TRUE","7":"FALSE","8":"NA","9":"f."},{"1":"Glaucomys sp.","2":"Glaucomys","3":"NA","4":"NA","5":"INFORMAL","6":"TRUE","7":"FALSE","8":"NA","9":"sp."},{"1":"Maylandia sp.","2":"Maylandia","3":"NA","4":"NA","5":"INFORMAL","6":"TRUE","7":"FALSE","8":"NA","9":"sp."},{"1":"Botrytella sp.","2":"Botrytella","3":"NA","4":"NA","5":"INFORMAL","6":"TRUE","7":"FALSE","8":"NA","9":"sp."},{"1":"Elachista sp.","2":"Elachista","3":"NA","4":"NA","5":"INFORMAL","6":"TRUE","7":"FALSE","8":"NA","9":"sp."},{"1":"Myriactula sp.","2":"Myriactula","3":"NA","4":"NA","5":"INFORMAL","6":"TRUE","7":"FALSE","8":"NA","9":"sp."},{"1":"Physa sp.","2":"Physa","3":"NA","4":"NA","5":"INFORMAL","6":"TRUE","7":"FALSE","8":"NA","9":"sp."},{"1":"Cuprocyparis sp.","2":"Cuprocyparis","3":"NA","4":"NA","5":"INFORMAL","6":"TRUE","7":"FALSE","8":"NA","9":"sp."},{"1":"Larix sp.","2":"Larix","3":"NA","4":"NA","5":"INFORMAL","6":"TRUE","7":"FALSE","8":"NA","9":"sp."},{"1":"Dasysiphonia sp.","2":"Dasysiphonia","3":"NA","4":"NA","5":"INFORMAL","6":"TRUE","7":"FALSE","8":"NA","9":"sp."},{"1":"Porphyrostromium sp.","2":"Porphyrostromium","3":"NA","4":"NA","5":"INFORMAL","6":"TRUE","7":"FALSE","8":"NA","9":"sp."},{"1":"Anchusa arvensis  Orientalis","2":"Anchusa","3":"arvensis","4":"NA","5":"SCIENTIFIC","6":"TRUE","7":"FALSE","8":"Orientalis","9":"sp."},{"1":"Anthyllis vulneraria  Carpatica","2":"Anthyllis","3":"vulneraria","4":"NA","5":"SCIENTIFIC","6":"TRUE","7":"FALSE","8":"Carpatica","9":"sp."},{"1":"Arum italicum  Italicum","2":"Arum","3":"italicum","4":"NA","5":"SCIENTIFIC","6":"TRUE","7":"FALSE","8":"Italicum","9":"sp."},{"1":"Asparagus officinalis  Officinalis","2":"Asparagus","3":"officinalis","4":"NA","5":"SCIENTIFIC","6":"TRUE","7":"FALSE","8":"Officinalis","9":"sp."},{"1":"Brassica rapa  Oleifera","2":"Brassica","3":"rapa","4":"NA","5":"SCIENTIFIC","6":"TRUE","7":"FALSE","8":"Oleifera","9":"sp."},{"1":"Brassica rapa  Rapa","2":"Brassica","3":"rapa","4":"NA","5":"SCIENTIFIC","6":"TRUE","7":"FALSE","8":"Rapa","9":"sp."},{"1":"Bromus inermis  Inermis","2":"Bromus","3":"inermis","4":"NA","5":"SCIENTIFIC","6":"TRUE","7":"FALSE","8":"Inermis","9":"sp."},{"1":"Calamintha nepeta  Glandulosa","2":"Calamintha","3":"nepeta","4":"NA","5":"SCIENTIFIC","6":"TRUE","7":"FALSE","8":"Glandulosa","9":"sp."},{"1":"Lycium NA","2":"Lycium","3":"NA","4":"NA","5":"SCIENTIFIC","6":"TRUE","7":"FALSE","8":"__NA__","9":"NA"},{"1":"Populus NA","2":"Populus","3":"NA","4":"NA","5":"SCIENTIFIC","6":"TRUE","7":"FALSE","8":"__NA__","9":"NA"},{"1":"Pulmonaria NA","2":"Pulmonaria","3":"NA","4":"NA","5":"SCIENTIFIC","6":"TRUE","7":"FALSE","8":"__NA__","9":"NA"},{"1":"Rosa Hollandica'","2":"Rosa","3":"NA","4":"NA","5":"SCIENTIFIC","6":"TRUE","7":"FALSE","8":"Hollandica","9":"NA"},{"1":"Sedum Herbstfreude'","2":"Sedum","3":"NA","4":"NA","5":"SCIENTIFIC","6":"TRUE","7":"FALSE","8":"Herbstfreude","9":"NA"},{"1":"Triticosecale x","2":"Triticosecale","3":"NA","4":"NA","5":"SCIENTIFIC","6":"TRUE","7":"TRUE","8":"NA","9":"NA"},{"1":"Lipeurus maculosusIschnocera","2":"Lipeurus","3":"NA","4":"NA","5":"SCIENTIFIC","6":"TRUE","7":"TRUE","8":"NA","9":"NA"},{"1":"AseroÙ rubra","2":"Asero","3":"NA","4":"NA","5":"SCIENTIFIC","6":"TRUE","7":"TRUE","8":"Ù","9":"NA"},{"1":"Bluetongue n.a.","2":"Bluetongue","3":"NA","4":"NA","5":"SCIENTIFIC","6":"TRUE","7":"TRUE","8":"NA","9":"NA"},{"1":"Avipoxvirus n.a.","2":"NA","3":"NA","4":"NA","5":"VIRUS","6":"FALSE","7":"FALSE","8":"NA","9":"NA"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>The decisions for the cleaning steps are summarized in <a href="https://github.com/trias-project/rinse-checklist/issues/3">this issue</a></p>
+<p>For some scientific names, we need information on <code>authorship</code> to clean them, so we merge this information with the raw dataset:</p>
+<pre class="r"><code># Select the necessary columns in `parsed_names`:
+parsed_names %&lt;&gt;% select(scientificname, authorship) 
+
+# Merge with raw_data:
+raw_data %&lt;&gt;% bind_cols(parsed_names)
+
+# Remove duplicate column
+raw_data %&lt;&gt;% select(-scientificname) </code></pre>
+<p>Generate <code>scientificName_clean</code>:</p>
+<pre class="r"><code>raw_data %&lt;&gt;% mutate(scientificName_clean = case_when(
+  scientificName == &quot;Brachyglottis x &#39;Sunshine&#39;&quot; ~ &quot;Brachyglottis &#39;Sunshine&#39;&quot;,
+  scientificName == &quot;Cotoneaster x &#39;Hybridus pendulus&#39;&quot; ~ &quot;Cotoneaster &#39;Hybridus pendulus&#39;&quot;,
+  scientificName == &quot;Fuchsia x &#39;Corallina&#39;&quot; ~ &quot;Fuchsia &#39;Corallina&#39;&quot;,
+  scientificName == &quot;Symphytum x &#39;Hidcote Blue&#39;&quot; ~ &quot;Symphytum &#39;Hidcote Blue&#39;&quot;,
+  species == &quot;agg.&quot; ~ genus,
+  species == &quot;sp.&quot; ~ genus,
+  authorship == &quot;Orientalis&quot; ~ &quot;Anchusa arvensis orientalis&quot;,
+  authorship == &quot;Italicum&quot; ~ &quot;Arum italicum italicum&quot;,
+  authorship == &quot;Officinalis&quot; ~ &quot;Asparagus officinalis officinalis&quot;,
+  authorship == &quot;Oleifera&quot; ~ &quot;Brassica rapa oleifera&quot;,
+  authorship == &quot;Rapa&quot; ~ &quot;Brassica rapa rapa&quot;,
+  authorship == &quot;Inermis&quot; ~ &quot;Bromus inermis inermis&quot;,
+  authorship == &quot;Glandulosa&quot; ~ &quot;Calamintha nepeta glandulosa&quot;,
+  authorship == &quot;Carpatica&quot; ~ &quot;Anthyllis vulneraria carpatica&quot;,
+  is.na(species) ~ genus,
+  scientificName == &quot;Rosa Hollandica&#39;&quot; ~ &quot;Rosa &#39;Hollandica&#39;&quot;,
+  scientificName == &quot;Sedum Herbstfreude&#39;&quot; ~ &quot;Sedum &#39;Herbstfreude&#39;&quot;,
+  species == &quot;x&quot; ~ genus,
+  scientificName == &quot;Lipeurus maculosusIschnocera&quot; ~ &quot;Lipeurus maculosus&quot;,
+  species == &quot;n.a.&quot; ~ genus,
+  scientificName == &quot;AseroÙ rubra&quot; ~ &quot;Asero rubra&quot;,
+  scientificName == &quot;Cuprocyparis x leylandii hyb.&quot; ~ &quot;Cuprocyparis x leylandii&quot;,
+  scientificName == &quot;Larix x marschlinsii hyb.&quot; ~ &quot;Larix x marschlinsii&quot;,
+  scientificName == &quot;Acrophyllum dentatum&quot; &amp; phylum_division == &quot;Bryophyta&quot; ~ &quot;Achrophyllum dentatum&quot;,
+  TRUE ~ scientificName
+))</code></pre>
+<p>Several scientific names contain double whitespaces:</p>
+<pre class="r"><code>raw_data %&gt;% select(scientificName_clean) %&gt;% filter(str_detect(scientificName_clean, &quot;\\s{2}&quot;))</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["scientificName_clean"],"name":[1],"type":["chr"],"align":["left"]}],"data":[{"1":"Aethusa cynapium  agrestis"},{"1":"Amaranthus hybridus  hybridus"},{"1":"Anthyllis vulneraria  polyphylla"},{"1":"Aster novi-belgii  laevigatus"},{"1":"Aster novi-belgii  novi-belgii"},{"1":"Balsamita major  major"},{"1":"Beta vulgaris  cicla"},{"1":"Beta vulgaris  vulgaris"},{"1":"Brassica napus  napus"},{"1":"Brassica napus  rapifera"},{"1":"Brassica rapa  campestris"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>Clean these scientific names:</p>
+<pre class="r"><code>raw_data %&lt;&gt;% mutate(scientificName_clean = str_replace_all(scientificName_clean, &quot;\\s{2}&quot;, &quot; &quot;)) </code></pre>
+<p>We will now create <code>genus_clean</code>, <code>species_clean</code> and <code>infraspecificEpithet_clean</code> by applying the nameparser on <code>scientificName_clean</code>:</p>
+<pre class="r"><code>parsed_names_clean &lt;- parsenames(raw_data$scientificName_clean)</code></pre>
+<p>Select required columns:</p>
+<pre class="r"><code>parsed_names_clean %&lt;&gt;% select(scientificname, type, genusorabove, specificepithet, infraspecificepithet, rankmarker) </code></pre>
+<p>Merge <code>parsed_names_clean</code> with <code>raw_data</code>:</p>
+<pre class="r"><code>raw_data %&lt;&gt;% bind_cols(parsed_names_clean) 
+
+# Remove duplicate column `scientificname`:
+raw_data %&lt;&gt;% select(-scientificname) </code></pre>
+<p>Rename column names:</p>
+<pre class="r"><code>raw_data %&lt;&gt;% rename(
+  genus_clean = genusorabove,
+  specificEpithet_clean = specificepithet,
+  infraspecificEpithet_clean = infraspecificepithet
+)</code></pre>
+</div>
+<div id="create-taxonid" class="section level2">
+<h2><span class="header-section-number">2.2</span> Create taxonID:</h2>
+<p>To uniquely identify a taxon in the taxon core and reference taxa in the extensions, we need a <code>taxonID</code>. Since we need it in all generated files, we generate it here in the raw data frame. It is a combination of <code>dataset-shortname:taxon:</code> and a hash based on a combination of <code>scientificName_clean</code> and <code>phylum_division</code>. We use this combination as one <code>scientificName</code> is associated with two different phyla (hemihomonym), i.e. <code>Elachista</code> can be both an algal species or a moth. As long as the scientific name + phylum combination doesn’t change, the ID will be stable.</p>
+<pre class="r"><code># Vectorize the digest function (The digest() function isn&#39;t vectorized. So if you pass in a vector, you get one value for the whole vector rather than a digest for each element of the vector):
+vdigest &lt;- Vectorize(digest)
+
+# Generate scientificName_phylum column to deal with hemihomonym issue:
+raw_data %&lt;&gt;% mutate(scientificName_phylum = paste(scientificName_clean, phylum_division)) 
+
+# Generate taxonID:
+raw_data %&lt;&gt;% mutate(taxon_id = paste(&quot;rinse-checklist&quot;, &quot;taxon&quot;, vdigest(scientificName_phylum, algo=&quot;md5&quot;), sep = &quot;:&quot;))</code></pre>
+</div>
+<div id="further-pre-processing" class="section level2">
+<h2><span class="header-section-number">2.3</span> Further pre-processing:</h2>
+<p>Add prefix <code>raw_</code> to all column names to avoid name clashes with Darwin Core terms:</p>
+<pre class="r"><code>colnames(raw_data) &lt;- paste0(&quot;raw_&quot;, colnames(raw_data))</code></pre>
+<p>Preview data:</p>
+<pre class="r"><code>raw_data %&gt;% head()</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["raw_phylum_division"],"name":[1],"type":["chr"],"align":["left"]},{"label":["raw_class"],"name":[2],"type":["chr"],"align":["left"]},{"label":["raw_genus"],"name":[3],"type":["chr"],"align":["left"]},{"label":["raw_species"],"name":[4],"type":["chr"],"align":["left"]},{"label":["raw_great_britain"],"name":[5],"type":["chr"],"align":["left"]},{"label":["raw_france"],"name":[6],"type":["chr"],"align":["left"]},{"label":["raw_belgium"],"name":[7],"type":["chr"],"align":["left"]},{"label":["raw_netherlands"],"name":[8],"type":["chr"],"align":["left"]},{"label":["raw_environment"],"name":[9],"type":["chr"],"align":["left"]},{"label":["raw_notes"],"name":[10],"type":["chr"],"align":["left"]},{"label":["raw_scientificName"],"name":[11],"type":["chr"],"align":["left"]},{"label":["raw_authorship"],"name":[12],"type":["chr"],"align":["left"]},{"label":["raw_scientificName_clean"],"name":[13],"type":["chr"],"align":["left"]},{"label":["raw_type"],"name":[14],"type":["chr"],"align":["left"]},{"label":["raw_genus_clean"],"name":[15],"type":["chr"],"align":["left"]},{"label":["raw_specificEpithet_clean"],"name":[16],"type":["chr"],"align":["left"]},{"label":["raw_infraspecificEpithet_clean"],"name":[17],"type":["chr"],"align":["left"]},{"label":["raw_rankmarker"],"name":[18],"type":["chr"],"align":["left"]},{"label":["raw_scientificName_phylum"],"name":[19],"type":["chr"],"align":["left"]},{"label":["raw_taxon_id"],"name":[20],"type":["chr"],"align":["left"]}],"data":[{"1":"Angiospermae","2":"Eudicotyledoneae","3":"Abronia","4":"fragrans","5":"not confirmed","6":"not confirmed","7":"present","8":"not confirmed","9":"terrestrial","10":"NA","11":"Abronia fragrans","12":"NA","13":"Abronia fragrans","14":"SCIENTIFIC","15":"Abronia","16":"fragrans","17":"NA","18":"sp.","19":"Abronia fragrans Angiospermae","20":"rinse-checklist:taxon:c25584fb9c684832b78e2c810775e7d6"},{"1":"Angiospermae","2":"Eudicotyledoneae","3":"Abutilon","4":"theophrasti","5":"present","6":"present","7":"present","8":"present","9":"terrestrial","10":"NA","11":"Abutilon theophrasti","12":"NA","13":"Abutilon theophrasti","14":"SCIENTIFIC","15":"Abutilon","16":"theophrasti","17":"NA","18":"sp.","19":"Abutilon theophrasti Angiospermae","20":"rinse-checklist:taxon:e0abdf999528dfeb96d0901c65718846"},{"1":"Angiospermae","2":"Eudicotyledoneae","3":"Acacia","4":"baileyana","5":"not confirmed","6":"present","7":"not confirmed","8":"not confirmed","9":"terrestrial","10":"NA","11":"Acacia baileyana","12":"NA","13":"Acacia baileyana","14":"SCIENTIFIC","15":"Acacia","16":"baileyana","17":"NA","18":"sp.","19":"Acacia baileyana Angiospermae","20":"rinse-checklist:taxon:d8a885b861770f52e4dfbc3043a2ced9"},{"1":"Angiospermae","2":"Eudicotyledoneae","3":"Acacia","4":"cultriformis","5":"not confirmed","6":"present","7":"not confirmed","8":"not confirmed","9":"terrestrial","10":"NA","11":"Acacia cultriformis","12":"NA","13":"Acacia cultriformis","14":"SCIENTIFIC","15":"Acacia","16":"cultriformis","17":"NA","18":"sp.","19":"Acacia cultriformis Angiospermae","20":"rinse-checklist:taxon:2d6c3b2ea7dd91cacd27b46dcbed0540"},{"1":"Angiospermae","2":"Eudicotyledoneae","3":"Acacia","4":"dealbata","5":"not confirmed","6":"present","7":"not confirmed","8":"not confirmed","9":"terrestrial","10":"NA","11":"Acacia dealbata","12":"NA","13":"Acacia dealbata","14":"SCIENTIFIC","15":"Acacia","16":"dealbata","17":"NA","18":"sp.","19":"Acacia dealbata Angiospermae","20":"rinse-checklist:taxon:c941277be979f3e390751ecf25b7609f"},{"1":"Angiospermae","2":"Eudicotyledoneae","3":"Acacia","4":"decurrens","5":"not confirmed","6":"present","7":"not confirmed","8":"not confirmed","9":"terrestrial","10":"NA","11":"Acacia decurrens","12":"NA","13":"Acacia decurrens","14":"SCIENTIFIC","15":"Acacia","16":"decurrens","17":"NA","18":"sp.","19":"Acacia decurrens Angiospermae","20":"rinse-checklist:taxon:aa5f821fcf8d487ffa7c8819edabedc5"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<div id="create-taxon-core" class="section level1">
+<h1><span class="header-section-number">3</span> Create taxon core</h1>
+<pre class="r"><code>taxon &lt;- raw_data</code></pre>
+<div id="pre-processing" class="section level2">
+<h2><span class="header-section-number">3.1</span> Pre-processing</h2>
+<p>Some taxa in the checklist are duplicated, i.e. they are found in two rows instead of one (see <a href="https://github.com/trias-project/rinse-registry-checklist/issues/8">this issue</a>). This is because these taxa have two contrasting distribution records which depend on the consulted resource (data based solely on DAISIE portal and data based on all sources). In the taxon core, we only want one row per taxon.</p>
+<p>Identify taxa which have two distribution records:</p>
+<pre class="r"><code>taxon %&gt;% filter(duplicated(taxon$raw_scientificName_clean)==TRUE)</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["raw_phylum_division"],"name":[1],"type":["chr"],"align":["left"]},{"label":["raw_class"],"name":[2],"type":["chr"],"align":["left"]},{"label":["raw_genus"],"name":[3],"type":["chr"],"align":["left"]},{"label":["raw_species"],"name":[4],"type":["chr"],"align":["left"]},{"label":["raw_great_britain"],"name":[5],"type":["chr"],"align":["left"]},{"label":["raw_france"],"name":[6],"type":["chr"],"align":["left"]},{"label":["raw_belgium"],"name":[7],"type":["chr"],"align":["left"]},{"label":["raw_netherlands"],"name":[8],"type":["chr"],"align":["left"]},{"label":["raw_environment"],"name":[9],"type":["chr"],"align":["left"]},{"label":["raw_notes"],"name":[10],"type":["chr"],"align":["left"]},{"label":["raw_scientificName"],"name":[11],"type":["chr"],"align":["left"]},{"label":["raw_authorship"],"name":[12],"type":["chr"],"align":["left"]},{"label":["raw_scientificName_clean"],"name":[13],"type":["chr"],"align":["left"]},{"label":["raw_type"],"name":[14],"type":["chr"],"align":["left"]},{"label":["raw_genus_clean"],"name":[15],"type":["chr"],"align":["left"]},{"label":["raw_specificEpithet_clean"],"name":[16],"type":["chr"],"align":["left"]},{"label":["raw_infraspecificEpithet_clean"],"name":[17],"type":["chr"],"align":["left"]},{"label":["raw_rankmarker"],"name":[18],"type":["chr"],"align":["left"]},{"label":["raw_scientificName_phylum"],"name":[19],"type":["chr"],"align":["left"]},{"label":["raw_taxon_id"],"name":[20],"type":["chr"],"align":["left"]}],"data":[{"1":"Angiospermae","2":"Eudicotyledoneae","3":"Anchusa","4":"arvensis","5":"not confirmed","6":"not confirmed","7":"present","8":"not confirmed","9":"terrestrial","10":"NA","11":"Anchusa arvensis","12":"NA","13":"Anchusa arvensis","14":"SCIENTIFIC","15":"Anchusa","16":"arvensis","17":"NA","18":"sp.","19":"Anchusa arvensis Angiospermae","20":"rinse-checklist:taxon:8dff1a337ebec59edb56aa3a60d8b350"},{"1":"Angiospermae","2":"Monocotyledoneae","3":"Avena","4":"sterilis","5":"not confirmed","6":"not confirmed","7":"present","8":"not confirmed","9":"terrestrial","10":"NA","11":"Avena sterilis","12":"NA","13":"Avena sterilis","14":"SCIENTIFIC","15":"Avena","16":"sterilis","17":"NA","18":"sp.","19":"Avena sterilis Angiospermae","20":"rinse-checklist:taxon:a27b41cd08ce0b1b84979d61f3178826"},{"1":"Angiospermae","2":"Monocotyledoneae","3":"Avena","4":"strigosa","5":"not confirmed","6":"not confirmed","7":"present","8":"not confirmed","9":"terrestrial","10":"NA","11":"Avena strigosa","12":"NA","13":"Avena strigosa","14":"SCIENTIFIC","15":"Avena","16":"strigosa","17":"NA","18":"sp.","19":"Avena strigosa Angiospermae","20":"rinse-checklist:taxon:9a05442ce2eb9ca75a19fd548de33dbc"},{"1":"Angiospermae","2":"NA","3":"Beta","4":"vulgaris","5":"not confirmed","6":"not confirmed","7":"present","8":"not confirmed","9":"terrestrial","10":"NA","11":"Beta vulgaris","12":"NA","13":"Beta vulgaris","14":"SCIENTIFIC","15":"Beta","16":"vulgaris","17":"NA","18":"sp.","19":"Beta vulgaris Angiospermae","20":"rinse-checklist:taxon:af089a04d80627611c6dc037f8ec8117"},{"1":"Angiospermae","2":"NA","3":"Brassica","4":"elongata","5":"not confirmed","6":"not confirmed","7":"present","8":"not confirmed","9":"terrestrial","10":"NA","11":"Brassica elongata","12":"NA","13":"Brassica elongata","14":"SCIENTIFIC","15":"Brassica","16":"elongata","17":"NA","18":"sp.","19":"Brassica elongata Angiospermae","20":"rinse-checklist:taxon:bab357e2739100574bc9c4fcb31e5a41"},{"1":"Angiospermae","2":"NA","3":"Chenopodium","4":"berlandieri","5":"not confirmed","6":"not confirmed","7":"present","8":"not confirmed","9":"terrestrial","10":"NA","11":"Chenopodium berlandieri","12":"NA","13":"Chenopodium berlandieri","14":"SCIENTIFIC","15":"Chenopodium","16":"berlandieri","17":"NA","18":"sp.","19":"Chenopodium berlandieri Angiospermae","20":"rinse-checklist:taxon:b848a567c7cc3c17ec702849d0a4760a"},{"1":"Angiospermae","2":"NA","3":"Chenopodium","4":"strictum","5":"not confirmed","6":"not confirmed","7":"present","8":"not confirmed","9":"terrestrial","10":"NA","11":"Chenopodium strictum","12":"NA","13":"Chenopodium strictum","14":"SCIENTIFIC","15":"Chenopodium","16":"strictum","17":"NA","18":"sp.","19":"Chenopodium strictum Angiospermae","20":"rinse-checklist:taxon:ac409b7eec1b247ce7a76b52c5350dab"},{"1":"Angiospermae","2":"Monocotyledoneae","3":"Cynodon","4":"incompletus","5":"not confirmed","6":"not confirmed","7":"present","8":"not confirmed","9":"terrestrial","10":"NA","11":"Cynodon incompletus","12":"NA","13":"Cynodon incompletus","14":"SCIENTIFIC","15":"Cynodon","16":"incompletus","17":"NA","18":"sp.","19":"Cynodon incompletus Angiospermae","20":"rinse-checklist:taxon:f8e6f62bb26fa352aac0295ca440195e"},{"1":"Angiospermae","2":"Eudicotyledoneae","3":"Epilobium","4":"x novae-civitatis","5":"not confirmed","6":"not confirmed","7":"present","8":"not confirmed","9":"terrestrial","10":"NA","11":"Epilobium x novae-civitatis","12":"NA","13":"Epilobium x novae-civitatis","14":"SCIENTIFIC","15":"Epilobium","16":"novae-civitatis","17":"NA","18":"sp.","19":"Epilobium x novae-civitatis Angiospermae","20":"rinse-checklist:taxon:256b82d297e078dc1331497a84d263d6"},{"1":"Angiospermae","2":"NA","3":"Hypericum","4":"hircinum","5":"not confirmed","6":"present","7":"not confirmed","8":"not confirmed","9":"terrestrial","10":"NA","11":"Hypericum hircinum","12":"NA","13":"Hypericum hircinum","14":"SCIENTIFIC","15":"Hypericum","16":"hircinum","17":"NA","18":"sp.","19":"Hypericum hircinum Angiospermae","20":"rinse-checklist:taxon:ba42cef62960407ecfcb7eede8e92f81"},{"1":"Angiospermae","2":"NA","3":"Lythrum","4":"junceum","5":"not confirmed","6":"not confirmed","7":"present","8":"not confirmed","9":"terrestrial","10":"NA","11":"Lythrum junceum","12":"NA","13":"Lythrum junceum","14":"SCIENTIFIC","15":"Lythrum","16":"junceum","17":"NA","18":"sp.","19":"Lythrum junceum Angiospermae","20":"rinse-checklist:taxon:fec556739070d4ffc53b7177c33665bb"},{"1":"Angiospermae","2":"NA","3":"Mentha","4":"x piperita","5":"not confirmed","6":"not confirmed","7":"present","8":"not confirmed","9":"terrestrial","10":"NA","11":"Mentha x piperita","12":"NA","13":"Mentha x piperita","14":"SCIENTIFIC","15":"Mentha","16":"piperita","17":"NA","18":"sp.","19":"Mentha x piperita Angiospermae","20":"rinse-checklist:taxon:f65c7076309445e0ad27bac9dcb2a9a2"},{"1":"Angiospermae","2":"Monocotyledoneae","3":"Papaver","4":"atlanticum","5":"present","6":"not confirmed","7":"present","8":"present","9":"terrestrial","10":"NA","11":"Papaver atlanticum","12":"NA","13":"Papaver atlanticum","14":"SCIENTIFIC","15":"Papaver","16":"atlanticum","17":"NA","18":"sp.","19":"Papaver atlanticum Angiospermae","20":"rinse-checklist:taxon:f07866eacf13ec2e9b51c894642265e4"},{"1":"Angiospermae","2":"NA","3":"Populus","4":"nigra","5":"not confirmed","6":"not confirmed","7":"present","8":"not confirmed","9":"terrestrial","10":"NA","11":"Populus nigra","12":"NA","13":"Populus nigra","14":"SCIENTIFIC","15":"Populus","16":"nigra","17":"NA","18":"sp.","19":"Populus nigra Angiospermae","20":"rinse-checklist:taxon:c7fc975c969b6f4994ca1fb3ababb673"},{"1":"Angiospermae","2":"NA","3":"Salix","4":"x sepulcralis","5":"not confirmed","6":"not confirmed","7":"present","8":"not confirmed","9":"terrestrial","10":"NA","11":"Salix x sepulcralis","12":"NA","13":"Salix x sepulcralis","14":"SCIENTIFIC","15":"Salix","16":"sepulcralis","17":"NA","18":"sp.","19":"Salix x sepulcralis Angiospermae","20":"rinse-checklist:taxon:97497ba621bed5ddda105c9c3d3e3333"},{"1":"Arthropoda","2":"Insecta","3":"Cinara","4":"pini","5":"present","6":"not confirmed","7":"not confirmed","8":"not confirmed","9":"terrestrial","10":"NA","11":"Cinara pini","12":"NA","13":"Cinara pini","14":"SCIENTIFIC","15":"Cinara","16":"pini","17":"NA","18":"sp.","19":"Cinara pini Arthropoda","20":"rinse-checklist:taxon:d32c790a1faaf3d881de2d5a302816e6"},{"1":"Heterokontophyta","2":"Phaeophyceae","3":"Elachista","4":"sp.","5":"not confirmed","6":"not confirmed","7":"not confirmed","8":"present","9":"marine","10":"NA","11":"Elachista sp.","12":"NA","13":"Elachista","14":"SCIENTIFIC","15":"Elachista","16":"NA","17":"NA","18":"NA","19":"Elachista Heterokontophyta","20":"rinse-checklist:taxon:75b819e73a6106c9e9bc146bda773399"},{"1":"Nematoda","2":"Adenophorea","3":"Xiphinema","4":"rivesi","5":"not confirmed","6":"present","7":"not confirmed","8":"not confirmed","9":"terrestrial","10":"NA","11":"Xiphinema rivesi","12":"NA","13":"Xiphinema rivesi","14":"SCIENTIFIC","15":"Xiphinema","16":"rivesi","17":"NA","18":"sp.","19":"Xiphinema rivesi Nematoda","20":"rinse-checklist:taxon:dde0c2d4f093deaf99f4c7dd4b313713"},{"1":"Pteridophyta","2":"Pteridopsida","3":"Dicksonia","4":"antarctica","5":"present","6":"not confirmed","7":"not confirmed","8":"not confirmed","9":"terrestrial","10":"NA","11":"Dicksonia antarctica","12":"NA","13":"Dicksonia antarctica","14":"SCIENTIFIC","15":"Dicksonia","16":"antarctica","17":"NA","18":"sp.","19":"Dicksonia antarctica Pteridophyta","20":"rinse-checklist:taxon:26d6adeab884199b5961f620ad76a42d"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>Remove duplicated rows:</p>
+<pre class="r"><code>taxon %&lt;&gt;% filter(duplicated(taxon$raw_scientificName_clean)==FALSE)</code></pre>
+</div>
+<div id="term-mapping" class="section level2">
+<h2><span class="header-section-number">3.2</span> Term mapping</h2>
+<p>Map the data to <a href="http://rs.gbif.org/core/dwc_taxon_2015-04-24.xml">Darwin Core Taxon</a>.</p>
+<div id="language" class="section level3">
+<h3><span class="header-section-number">3.2.1</span> language</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(language = &quot;en&quot;)</code></pre>
+</div>
+<div id="license" class="section level3">
+<h3><span class="header-section-number">3.2.2</span> license</h3>
+<p>Although the source data are published under the <a href="http://opendatacommons.org/licenses/odbl/1.0/">Open Database License</a>, we have the permission to pulish the checklist under the CC0 waiver.</p>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(license = &quot;http://creativecommons.org/publicdomain/zero/1.0/&quot;)</code></pre>
+</div>
+<div id="rightsholder" class="section level3">
+<h3><span class="header-section-number">3.2.3</span> rightsHolder</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(rightsHolder = &quot;University of Cambridge&quot;)</code></pre>
+</div>
+<div id="datasetid" class="section level3">
+<h3><span class="header-section-number">3.2.4</span> datasetID</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(datasetID = &quot;https://doi.org/10.15468/focajn&quot;)</code></pre>
+</div>
+<div id="institutioncode" class="section level3">
+<h3><span class="header-section-number">3.2.5</span> institutionCode</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(institutionCode = &quot;CU&quot;)</code></pre>
+</div>
+<div id="datasetname" class="section level3">
+<h3><span class="header-section-number">3.2.6</span> datasetName</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(datasetName = &quot;RINSE - Registry of non-native species in the Two Seas region countries (Great Britain, France, Belgium and the Netherlands)&quot;)</code></pre>
+</div>
+<div id="taxonid" class="section level3">
+<h3><span class="header-section-number">3.2.7</span> taxonID</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(taxonID = raw_taxon_id)</code></pre>
+</div>
+<div id="scientificname" class="section level3">
+<h3><span class="header-section-number">3.2.8</span> scientificName</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(scientificName = raw_scientificName_clean)</code></pre>
+</div>
+<div id="kingdom" class="section level3">
+<h3><span class="header-section-number">3.2.9</span> kingdom</h3>
+<p>Information on the kingdoms is not available in the raw data. However, we can derive it form the field <code>raw_phylum_division</code> using rgbif.</p>
+<p>For this, we need to save all phyla in a separate dataframe:</p>
+<pre class="r"><code>phylum &lt;- taxon %&gt;% distinct(raw_phylum_division)</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["raw_phylum_division"],"name":[1],"type":["chr"],"align":["left"]}],"data":[{"1":"Angiospermae"},{"1":"Annelida"},{"1":"Arthropoda"},{"1":"Ascomycota"},{"1":"Basidiomycota"},{"1":"Bryophyta"},{"1":"Bryozoa"},{"1":"Cercozoa"},{"1":"Chlorophyta"},{"1":"Chordata"},{"1":"Chytridiomycota"},{"1":"Cnidaria"},{"1":"Ctenophora"},{"1":"Dinoflagellata"},{"1":"Entoprocta"},{"1":"Firmicutes"},{"1":"Haptophyta"},{"1":"Heterokontophyta"},{"1":"Lycopodiophyta"},{"1":"Marchantiophyta"},{"1":"Mollusca"},{"1":"Nematoda"},{"1":"Nemertea"},{"1":"Pinophyta"},{"1":"Platyhelminthes"},{"1":"Porifera"},{"1":"Proteobacteria"},{"1":"Pteridophyta"},{"1":"Rhodophyta"},{"1":"Rotifera"},{"1":"Vira"},{"1":"Zygomycota"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>We remove <code>Vira</code> from the list as this is there’s no kingdom for this group.</p>
+<pre class="r"><code>phylum %&lt;&gt;% filter(raw_phylum_division != &quot;Vira&quot;) </code></pre>
+<p>Select <code>kingdkom</code> using rgbif:</p>
+<pre class="r"><code>phylum %&lt;&gt;%
+  rowwise() %&gt;%
+  mutate(kingdom = name_usage(name = raw_phylum_division, return = &quot;data&quot;) %&gt;% 
+  select(kingdom) %&gt;% 
+  filter(!is.na(kingdom)) %&gt;%
+  count(kingdom) %&gt;%
+  filter(n == max(n)) %&gt;%
+  slice(1L) %&gt;%
+  pull(kingdom)) %&gt;%
+  ungroup()</code></pre>
+<p>Merge <code>phylum</code> with <code>taxon</code>:</p>
+<pre class="r"><code>taxon %&lt;&gt;% left_join(phylum, by = &quot;raw_phylum_division&quot;)</code></pre>
+</div>
+<div id="phylum" class="section level3">
+<h3><span class="header-section-number">3.2.10</span> phylum</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(phylum = raw_phylum_division) </code></pre>
+</div>
+<div id="class" class="section level3">
+<h3><span class="header-section-number">3.2.11</span> class</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(class = raw_class) </code></pre>
+</div>
+<div id="genus" class="section level3">
+<h3><span class="header-section-number">3.2.12</span> genus</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(genus = raw_genus_clean)</code></pre>
+</div>
+<div id="specificepithet" class="section level3">
+<h3><span class="header-section-number">3.2.13</span> specificEpithet</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(specificEpithet = raw_specificEpithet_clean)</code></pre>
+</div>
+<div id="infraspecificepithet" class="section level3">
+<h3><span class="header-section-number">3.2.14</span> infraspecificEpithet</h3>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(infraspecificEpithet = raw_infraspecificEpithet_clean) </code></pre>
+</div>
+<div id="taxonrank" class="section level3">
+<h3><span class="header-section-number">3.2.15</span> taxonRank</h3>
+<p><code>taxonRank</code> is provided by the GBIF nameparser function. However, information for genera, species aggregates and cultivars is not available. We map this information manually.</p>
+<pre class="r"><code>taxon %&lt;&gt;% mutate(taxonRank = case_when(
+  raw_species == &quot;agg.&quot; ~ &quot;genus&quot;,
+  raw_species == &quot;sp.&quot; | 
+    raw_species == &quot;x&quot; |
+    is.na(raw_species) ~ &quot;genus&quot;,
+  raw_rankmarker == &quot;sp.&quot; ~ &quot;species&quot;,
+  raw_rankmarker == &quot;infrasp.&quot; ~ &quot;infraspecies&quot;,
+  raw_rankmarker == &quot;cv.&quot; ~ &quot;cultivar&quot;,
+  raw_type == &quot;HYBRID&quot; ~ &quot;hybrid&quot;
+)) </code></pre>
+</div>
+</div>
+<div id="post-processing" class="section level2">
+<h2><span class="header-section-number">3.3</span> Post-processing</h2>
+<p>Remove the original columns:</p>
+<pre class="r"><code>taxon %&lt;&gt;% select(-starts_with(&quot;raw_&quot;))</code></pre>
+<p>Preview data:</p>
+<pre class="r"><code>taxon %&gt;% head()</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["language"],"name":[1],"type":["chr"],"align":["left"]},{"label":["license"],"name":[2],"type":["chr"],"align":["left"]},{"label":["rightsHolder"],"name":[3],"type":["chr"],"align":["left"]},{"label":["datasetID"],"name":[4],"type":["chr"],"align":["left"]},{"label":["institutionCode"],"name":[5],"type":["chr"],"align":["left"]},{"label":["datasetName"],"name":[6],"type":["chr"],"align":["left"]},{"label":["taxonID"],"name":[7],"type":["chr"],"align":["left"]},{"label":["scientificName"],"name":[8],"type":["chr"],"align":["left"]},{"label":["kingdom"],"name":[9],"type":["chr"],"align":["left"]},{"label":["phylum"],"name":[10],"type":["chr"],"align":["left"]},{"label":["class"],"name":[11],"type":["chr"],"align":["left"]},{"label":["genus"],"name":[12],"type":["chr"],"align":["left"]},{"label":["specificEpithet"],"name":[13],"type":["chr"],"align":["left"]},{"label":["infraspecificEpithet"],"name":[14],"type":["chr"],"align":["left"]},{"label":["taxonRank"],"name":[15],"type":["chr"],"align":["left"]}],"data":[{"1":"en","2":"http://creativecommons.org/publicdomain/zero/1.0/","3":"University of Cambridge","4":"https://doi.org/10.15468/focajn","5":"CU","6":"RINSE - Registry of non-native species in the Two Seas region countries (Great Britain, France, Belgium and the Netherlands)","7":"rinse-checklist:taxon:c25584fb9c684832b78e2c810775e7d6","8":"Abronia fragrans","9":"Plantae","10":"Angiospermae","11":"Eudicotyledoneae","12":"Abronia","13":"fragrans","14":"NA","15":"species"},{"1":"en","2":"http://creativecommons.org/publicdomain/zero/1.0/","3":"University of Cambridge","4":"https://doi.org/10.15468/focajn","5":"CU","6":"RINSE - Registry of non-native species in the Two Seas region countries (Great Britain, France, Belgium and the Netherlands)","7":"rinse-checklist:taxon:e0abdf999528dfeb96d0901c65718846","8":"Abutilon theophrasti","9":"Plantae","10":"Angiospermae","11":"Eudicotyledoneae","12":"Abutilon","13":"theophrasti","14":"NA","15":"species"},{"1":"en","2":"http://creativecommons.org/publicdomain/zero/1.0/","3":"University of Cambridge","4":"https://doi.org/10.15468/focajn","5":"CU","6":"RINSE - Registry of non-native species in the Two Seas region countries (Great Britain, France, Belgium and the Netherlands)","7":"rinse-checklist:taxon:d8a885b861770f52e4dfbc3043a2ced9","8":"Acacia baileyana","9":"Plantae","10":"Angiospermae","11":"Eudicotyledoneae","12":"Acacia","13":"baileyana","14":"NA","15":"species"},{"1":"en","2":"http://creativecommons.org/publicdomain/zero/1.0/","3":"University of Cambridge","4":"https://doi.org/10.15468/focajn","5":"CU","6":"RINSE - Registry of non-native species in the Two Seas region countries (Great Britain, France, Belgium and the Netherlands)","7":"rinse-checklist:taxon:2d6c3b2ea7dd91cacd27b46dcbed0540","8":"Acacia cultriformis","9":"Plantae","10":"Angiospermae","11":"Eudicotyledoneae","12":"Acacia","13":"cultriformis","14":"NA","15":"species"},{"1":"en","2":"http://creativecommons.org/publicdomain/zero/1.0/","3":"University of Cambridge","4":"https://doi.org/10.15468/focajn","5":"CU","6":"RINSE - Registry of non-native species in the Two Seas region countries (Great Britain, France, Belgium and the Netherlands)","7":"rinse-checklist:taxon:c941277be979f3e390751ecf25b7609f","8":"Acacia dealbata","9":"Plantae","10":"Angiospermae","11":"Eudicotyledoneae","12":"Acacia","13":"dealbata","14":"NA","15":"species"},{"1":"en","2":"http://creativecommons.org/publicdomain/zero/1.0/","3":"University of Cambridge","4":"https://doi.org/10.15468/focajn","5":"CU","6":"RINSE - Registry of non-native species in the Two Seas region countries (Great Britain, France, Belgium and the Netherlands)","7":"rinse-checklist:taxon:aa5f821fcf8d487ffa7c8819edabedc5","8":"Acacia decurrens","9":"Plantae","10":"Angiospermae","11":"Eudicotyledoneae","12":"Acacia","13":"decurrens","14":"NA","15":"species"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>Save to CSV:</p>
+<pre class="r"><code>write.csv(taxon, file = dwc_taxon_file, na = &quot;&quot;, row.names = FALSE, fileEncoding = &quot;UTF-8&quot;)</code></pre>
+</div>
+</div>
+<div id="create-distribution-extension" class="section level1">
+<h1><span class="header-section-number">4</span> Create distribution extension</h1>
+<p>Map the data to <a href="http://rs.gbif.org/extension/gbif/1.0/distribution.xml">Species Distribution</a>.</p>
+<div id="pre-processing-1" class="section level2">
+<h2><span class="header-section-number">4.1</span> Pre-processing</h2>
+<pre class="r"><code>distribution &lt;- raw_data</code></pre>
+</div>
+<div id="term-mapping-1" class="section level2">
+<h2><span class="header-section-number">4.2</span> Term mapping</h2>
+<div id="taxonid-1" class="section level3">
+<h3><span class="header-section-number">4.2.1</span> taxonID</h3>
+<pre class="r"><code>distribution %&lt;&gt;% mutate(taxonID = raw_taxon_id) </code></pre>
+<p>Information for <code>locationID</code>, <code>locality</code>, <code>countrycode</code> and <code>occurrenceStatus</code> can be found in the columns <code>raw_great_brittain</code>, <code>raw_france</code>, <code>raw_belgium</code> and <code>raw_netherlands</code>, which represent the occurrence for each taxon in each country. For further mapping, we need to integrate the country information in one column <code>country</code> and the occurrence information in a second column:</p>
+<pre class="r"><code>distribution %&lt;&gt;% gather(country, occurrence, raw_great_britain, raw_france, raw_belgium, raw_netherlands, na.rm = TRUE) </code></pre>
+<p>Clean country names:</p>
+<pre class="r"><code>distribution %&lt;&gt;% mutate(country = recode(country,
+  raw_great_britain  = &quot;Great Britain&quot;,
+  raw_france         = &quot;France&quot;,
+  raw_belgium        = &quot;Belgium&quot;,
+  raw_netherlands    = &quot;The Netherlands&quot;
+))</code></pre>
+</div>
+<div id="locationid" class="section level3">
+<h3><span class="header-section-number">4.2.2</span> locationID</h3>
+<pre class="r"><code>distribution %&lt;&gt;% mutate(locationID = case_when(
+  country == &quot;Great Britain&quot;   ~ &quot;WGSRPD:GRB&quot;,
+  country == &quot;France&quot;          ~ &quot;ISO_3166-2:FR&quot;,
+  country == &quot;Belgium&quot;         ~ &quot;ISO_3166-2:BE&quot;,
+  country == &quot;The Netherlands&quot; ~ &quot;ISO_3166-2:NL&quot;
+))</code></pre>
+</div>
+<div id="locality" class="section level3">
+<h3><span class="header-section-number">4.2.3</span> locality</h3>
+<pre class="r"><code>distribution %&lt;&gt;% mutate(locality = country) </code></pre>
+</div>
+<div id="countrycode" class="section level3">
+<h3><span class="header-section-number">4.2.4</span> countryCode</h3>
+<pre class="r"><code>distribution %&lt;&gt;% mutate(countryCode = case_when(
+  country == &quot;Great Britain&quot;   ~ &quot;GB&quot;,
+  country == &quot;France&quot;          ~ &quot;FR&quot;,
+  country == &quot;Belgium&quot;         ~ &quot;BE&quot;,
+  country == &quot;The Netherlands&quot; ~ &quot;NL&quot;
+)) </code></pre>
+</div>
+<div id="occurrencestatus" class="section level3">
+<h3><span class="header-section-number">4.2.5</span> occurrenceStatus</h3>
+<p>Information for <code>occurrenceStatus</code> is contained in <code>occurrence</code>, which contains the following unique values:</p>
+<pre class="r"><code>distribution %&gt;% distinct(occurrence)</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["occurrence"],"name":[1],"type":["chr"],"align":["left"]}],"data":[{"1":"not confirmed"},{"1":"present"},{"1":"present/extinct"},{"1":"extinct"},{"1":"present/native"},{"1":"present/not confirmed"},{"1":"native"},{"1":"present/native/extinct"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>The interpretation of this content can be found in the main article, section 5B. The interpretation is quite straightforward, but three cases require some explanation:</p>
+<ul>
+<li>present/extinct: non-native species listed as “present” by one source but as “extinct” by another source</li>
+<li>present/native: non-native species listed as “present” by one source but as “native” by another source</li>
+<li>present/native/extinct: not in section 5B, but most probably a mixture of the previous cases.</li>
+</ul>
+<p>The information in <code>occurrence</code> can be mapped by combining <code>occurrenceStatus</code> and <code>establishmentMeans</code>:</p>
+<pre class="r"><code>as.data.frame(matrix(
+  data = rbind(
+    c(&quot;extinct&quot;, &quot;introduced&quot;, &quot;absent&quot;),
+    c(&quot;native&quot;, &quot;native&quot;, &quot;present&quot;),
+    c(&quot;not confirmed&quot;, &quot;introduced&quot;, &quot;doubtful&quot;),
+    c(&quot;present&quot;, &quot;introduced&quot;, &quot;present&quot;),
+    c(&quot;present/extinct&quot;, &quot;introduced&quot;, &quot;doubtful&quot;),
+    c(&quot;present/native&quot;, &quot;doubtful&quot;, &quot;present&quot;),
+    c(&quot;present/not confirmed&quot;, &quot;introduced&quot;, &quot;doubtful&quot;),
+    c(&quot;present/native/extinct&quot;, &quot;doubtful&quot;, &quot;doubtful&quot;)
+  ),
+  nrow = 8, ncol = 3, byrow = FALSE,
+  dimnames = list(c(1:8), c(&quot;occurrence&quot;, &quot;establishmentMeans&quot;, &quot;occurrenceStatus&quot;))
+))</code></pre>
+<pre class="r"><code>distribution %&lt;&gt;% mutate(occurrenceStatus = case_when(
+  occurrence == &quot;extinct&quot; ~ &quot;absent&quot;,
+  occurrence == &quot;native&quot; ~ &quot;present&quot;,
+  occurrence == &quot;not confirmed&quot; ~ &quot;doubtful&quot;,
+  occurrence == &quot;present&quot; ~ &quot;present&quot;, 
+  occurrence == &quot;present/extinct&quot; ~ &quot;doubtful&quot;,
+  occurrence == &quot;present/native&quot; ~ &quot;present&quot;,
+  occurrence == &quot;present/not confirmed&quot; ~ &quot;doubtful&quot;,
+  occurrence == &quot;present/native/extinct&quot; ~ &quot;doubtful&quot;
+))</code></pre>
+</div>
+<div id="establishmentmeans" class="section level3">
+<h3><span class="header-section-number">4.2.6</span> establishmentMeans</h3>
+<pre class="r"><code>distribution %&lt;&gt;% mutate(establishmentMeans = case_when(
+  occurrence == &quot;extinct&quot; ~ &quot;introduced&quot;,
+  occurrence == &quot;native&quot; ~ &quot;native&quot;,
+  occurrence == &quot;not confirmed&quot; ~ &quot;introduced&quot;,
+  occurrence == &quot;present&quot; ~ &quot;introduced&quot;, 
+  occurrence == &quot;present/extinct&quot; ~ &quot;introduced&quot;,
+  occurrence == &quot;present/native&quot; ~ &quot;doubtful&quot;,
+  occurrence == &quot;present/not confirmed&quot; ~ &quot;introduced&quot;,
+  occurrence == &quot;present/native/extinct&quot; ~ &quot;doubtful&quot;
+)) </code></pre>
+</div>
+<div id="source" class="section level3">
+<h3><span class="header-section-number">4.2.7</span> source</h3>
+<pre class="r"><code>distribution %&lt;&gt;% mutate(source = raw_notes) </code></pre>
+</div>
+</div>
+<div id="post-processing-1" class="section level2">
+<h2><span class="header-section-number">4.3</span> Post-processing</h2>
+<p>Remove the original columns:</p>
+<pre class="r"><code>distribution %&lt;&gt;% select(-starts_with(&quot;raw_&quot;), -country, -occurrence)</code></pre>
+<p>Sort on <code>taxonID</code>:</p>
+<pre class="r"><code>distribution %&lt;&gt;% arrange(taxonID)</code></pre>
+<p>Preview data:</p>
+<pre class="r"><code>distribution %&gt;% head()</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["taxonID"],"name":[1],"type":["chr"],"align":["left"]},{"label":["locationID"],"name":[2],"type":["chr"],"align":["left"]},{"label":["locality"],"name":[3],"type":["chr"],"align":["left"]},{"label":["countryCode"],"name":[4],"type":["chr"],"align":["left"]},{"label":["occurrenceStatus"],"name":[5],"type":["chr"],"align":["left"]},{"label":["establishmentMeans"],"name":[6],"type":["chr"],"align":["left"]},{"label":["source"],"name":[7],"type":["chr"],"align":["left"]}],"data":[{"1":"rinse-checklist:taxon:0004cb53db5025e9a1e3bd964184594b","2":"WGSRPD:GRB","3":"Great Britain","4":"GB","5":"present","6":"doubtful","7":"NA"},{"1":"rinse-checklist:taxon:0004cb53db5025e9a1e3bd964184594b","2":"ISO_3166-2:FR","3":"France","4":"FR","5":"doubtful","6":"introduced","7":"NA"},{"1":"rinse-checklist:taxon:0004cb53db5025e9a1e3bd964184594b","2":"ISO_3166-2:BE","3":"Belgium","4":"BE","5":"doubtful","6":"introduced","7":"NA"},{"1":"rinse-checklist:taxon:0004cb53db5025e9a1e3bd964184594b","2":"ISO_3166-2:NL","3":"The Netherlands","4":"NL","5":"present","6":"introduced","7":"NA"},{"1":"rinse-checklist:taxon:000c0c47fcebbbfe254d606552ca0566","2":"WGSRPD:GRB","3":"Great Britain","4":"GB","5":"present","6":"introduced","7":"NA"},{"1":"rinse-checklist:taxon:000c0c47fcebbbfe254d606552ca0566","2":"ISO_3166-2:FR","3":"France","4":"FR","5":"present","6":"introduced","7":"NA"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>Save to CSV:</p>
+<pre class="r"><code>write.csv(distribution, file = dwc_distribution_file, na = &quot;&quot;, row.names = FALSE, fileEncoding = &quot;UTF-8&quot;)</code></pre>
+</div>
+</div>
+<div id="create-species-profile-extension" class="section level1">
+<h1><span class="header-section-number">5</span> Create species profile extension</h1>
+<p>In this extension will express broad habitat characteristics (e.g. <code>isTerrestrial</code>) of the species. Habitat information can be found in <code>raw_environment</code></p>
+<pre class="r"><code>species_profile &lt;- raw_data</code></pre>
+<p>Similar as for the taxon core, we remove the duplicated taxa:</p>
+<p>Remove duplicated rows:</p>
+<pre class="r"><code>species_profile %&lt;&gt;% filter(duplicated(species_profile$raw_scientificName_clean)==FALSE)</code></pre>
+<p>Show unique values:</p>
+<pre class="r"><code>species_profile %&gt;%
+  distinct(raw_environment) %&gt;%
+  arrange(raw_environment)</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["raw_environment"],"name":[1],"type":["chr"],"align":["left"]}],"data":[{"1":"freshwater"},{"1":"freshwater+terrestrial"},{"1":"freshwater+terrestrial+marine"},{"1":"marine"},{"1":"marine+freshwater"},{"1":"terrestrial"},{"1":"terrestrial+marine"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>We map this information to <code>isFreshwater</code>, <code>isTerrestrial</code>, <code>isMarine</code> or a combination of these terms in the species profile extension.</p>
+<div id="term-mapping-2" class="section level2">
+<h2><span class="header-section-number">5.1</span> Term mapping</h2>
+<p>Map the data to <a href="http://rs.gbif.org/extension/gbif/1.0/speciesprofile.xml">Species Profile</a>.</p>
+<div id="taxonid-2" class="section level3">
+<h3><span class="header-section-number">5.1.1</span> taxonID</h3>
+<pre class="r"><code>species_profile %&lt;&gt;% mutate(taxonID = raw_taxon_id)</code></pre>
+</div>
+<div id="ismarine" class="section level3">
+<h3><span class="header-section-number">5.1.2</span> isMarine</h3>
+<pre class="r"><code>species_profile %&lt;&gt;% mutate(isMarine = case_when(
+  raw_environment == &quot;freshwater+terrestrial+marine&quot; | 
+    raw_environment == &quot;marine&quot; | 
+    raw_environment == &quot;marine+freshwater&quot; | 
+    raw_environment == &quot;terrestrial+marine&quot; ~ &quot;TRUE&quot;,
+  TRUE ~ &quot;FALSE&quot;
+))</code></pre>
+</div>
+<div id="isfreshwater" class="section level3">
+<h3><span class="header-section-number">5.1.3</span> isFreshwater</h3>
+<pre class="r"><code>species_profile %&lt;&gt;% mutate(isFreshwater = case_when(
+  raw_environment == &quot;freshwater&quot; | 
+  raw_environment == &quot;freshwater+terrestrial&quot; |
+  raw_environment == &quot;freshwater+terrestrial+marine&quot; |
+  raw_environment == &quot;marine+freshwater&quot; ~ &quot;TRUE&quot;,
+  TRUE ~&quot;FALSE&quot;
+))</code></pre>
+</div>
+<div id="isterrestrial" class="section level3">
+<h3><span class="header-section-number">5.1.4</span> isTerrestrial</h3>
+<pre class="r"><code>species_profile %&lt;&gt;% mutate(isTerrestrial = case_when(
+  raw_environment == &quot;freshwater+terrestrial&quot; | 
+  raw_environment == &quot;freshwater+terrestrial+marine&quot; | 
+  raw_environment == &quot;terrestrial&quot; |
+  raw_environment == &quot;terrestrial+marine&quot; ~ &quot;TRUE&quot;,
+  TRUE ~&quot;FALSE&quot;
+))</code></pre>
+<p>Show mapped values:</p>
+<pre class="r"><code>species_profile %&gt;%
+  select(raw_environment, isMarine, isFreshwater, isTerrestrial) %&gt;%
+  group_by_all() %&gt;%
+  summarize(records = n())</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["raw_environment"],"name":[1],"type":["chr"],"align":["left"]},{"label":["isMarine"],"name":[2],"type":["chr"],"align":["left"]},{"label":["isFreshwater"],"name":[3],"type":["chr"],"align":["left"]},{"label":["isTerrestrial"],"name":[4],"type":["chr"],"align":["left"]},{"label":["records"],"name":[5],"type":["int"],"align":["right"]}],"data":[{"1":"freshwater","2":"FALSE","3":"TRUE","4":"FALSE","5":"216"},{"1":"freshwater+terrestrial","2":"FALSE","3":"TRUE","4":"TRUE","5":"129"},{"1":"freshwater+terrestrial+marine","2":"TRUE","3":"TRUE","4":"TRUE","5":"47"},{"1":"marine","2":"TRUE","3":"FALSE","4":"FALSE","5":"367"},{"1":"marine+freshwater","2":"TRUE","3":"TRUE","4":"FALSE","5":"46"},{"1":"terrestrial","2":"FALSE","3":"FALSE","4":"TRUE","5":"5826"},{"1":"terrestrial+marine","2":"TRUE","3":"FALSE","4":"TRUE","5":"11"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<div id="post-processing-2" class="section level2">
+<h2><span class="header-section-number">5.2</span> Post-processing</h2>
+<p>Remove the original columns:</p>
+<pre class="r"><code>species_profile %&lt;&gt;% select(-starts_with(&quot;raw_&quot;))</code></pre>
+<p>Sort on <code>taxonID</code>:</p>
+<pre class="r"><code>species_profile %&lt;&gt;% arrange(taxonID)</code></pre>
+<p>Preview data:</p>
+<pre class="r"><code>species_profile %&gt;% head()</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["taxonID"],"name":[1],"type":["chr"],"align":["left"]},{"label":["isMarine"],"name":[2],"type":["chr"],"align":["left"]},{"label":["isFreshwater"],"name":[3],"type":["chr"],"align":["left"]},{"label":["isTerrestrial"],"name":[4],"type":["chr"],"align":["left"]}],"data":[{"1":"rinse-checklist:taxon:0004cb53db5025e9a1e3bd964184594b","2":"FALSE","3":"FALSE","4":"TRUE"},{"1":"rinse-checklist:taxon:000c0c47fcebbbfe254d606552ca0566","2":"FALSE","3":"FALSE","4":"TRUE"},{"1":"rinse-checklist:taxon:001173e14c4c40b63e8dba82a17adf90","2":"FALSE","3":"FALSE","4":"TRUE"},{"1":"rinse-checklist:taxon:001ad43eec311f1d1e680cc646405acf","2":"FALSE","3":"FALSE","4":"TRUE"},{"1":"rinse-checklist:taxon:0025317e37e228d94bbdf7b69c6e8e77","2":"FALSE","3":"FALSE","4":"TRUE"},{"1":"rinse-checklist:taxon:002ccd91ca366829d26fc9b06e354e0a","2":"FALSE","3":"FALSE","4":"TRUE"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>Save to CSV:</p>
+<pre class="r"><code>write.csv(species_profile, file = dwc_profile_file, na = &quot;&quot;, row.names = FALSE, fileEncoding = &quot;UTF-8&quot;)</code></pre>
+</div>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
