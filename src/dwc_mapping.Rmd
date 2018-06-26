@@ -14,7 +14,6 @@ output:
 ---
 
 This document describes how we map the checklist data to Darwin Core. The source file for this document can be found [here](https://github.com/trias-project/rinse-registry-checklist/blob/master/src/dwc_mapping.Rmd).
-test
 
 # Setup
 
