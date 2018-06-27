@@ -246,7 +246,7 @@ taxon <- raw_data
 Some taxa in the checklist are duplicated, i.e. they are found in two rows instead of one (see [this issue](https://github.com/trias-project/rinse-registry-checklist/issues/8)). This is because of two reasons:
 
 - most of these duplicated taxa have two contrasting distribution records which depend on the consulted resource (data based solely on DAISIE portal and data based on all sources). 
-- In one particular case, i.e. for _Elachista_, this is a homonym problem. 
+- In one particular case, i.e. for _Elachista_, this is a hemihomonym problem. 
 
 In the taxon core, we only want one row per taxon.  We want te keep the homonyms but remove the taxa which have two distribution records.
 
