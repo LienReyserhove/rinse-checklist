@@ -248,7 +248,7 @@ Some taxa in the checklist are duplicated, i.e. they are found in two rows inste
 - most of these duplicated taxa have two contrasting distribution records which depend on the consulted resource (data based solely on DAISIE portal and data based on all sources). 
 - In one particular case, i.e. for _Elachista_, this is a hemihomonym problem. 
 
-In the taxon core, we only want one row per taxon.  We want te keep the homonyms but remove the taxa which have two distribution records.
+In the taxon core, we only want one row per taxon.  We want to keep the homonyms but remove the taxa which have two distribution records.
 
 Identify the rownumbers of the duplicated taxa (exclude _Elachista_):
 
