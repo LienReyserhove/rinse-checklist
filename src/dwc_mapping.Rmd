@@ -86,7 +86,7 @@ raw_data %<>% mutate(scientificName = paste(genus, species))
 
 Parse names:
 
-```{r}
+```{r gbif_parse_names}
 parsed_names <- parsenames(raw_data $ scientificName)
 ```
 
