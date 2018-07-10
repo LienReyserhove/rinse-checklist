@@ -296,7 +296,13 @@ taxon %<>% mutate(datasetID = "https://doi.org/10.15468/focajn")
 ### institutionCode
 
 ```{r}
-taxon %<>% mutate(institutionCode = "CU")
+taxon %<>% mutate(institutionCode = "University of Cambridge")
+```
+
+### accessRights
+
+```{r}
+taxon %<>% mutate(accesRights = "http://www.inbo.be/en/norms-for-data-use") 
 ```
 
 ### datasetName
