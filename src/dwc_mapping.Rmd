@@ -218,7 +218,7 @@ vdigest <- Vectorize(digest)
 raw_data %<>% mutate(scientificName_phylum = paste(scientificName_clean, phylum_division)) 
 
 # Generate taxonID:
-raw_data %<>% mutate(taxon_id = paste("rinse-checklist", "taxon", vdigest(scientificName_phylum, algo="md5"), sep = ":"))
+raw_data %<>% mutate(taxon_id = paste("rinse-registry-checklist", "taxon", vdigest(scientificName_phylum, algo="md5"), sep = ":"))
 ```
 
 ## Further pre-processing:
