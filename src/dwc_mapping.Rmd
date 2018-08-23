@@ -218,7 +218,7 @@ vdigest <- Vectorize(digest)
 raw_data %<>% mutate(scientificName_phylum = paste(scientificName_clean, phylum_division)) 
 
 # Generate taxonID:
-raw_data %<>% mutate(taxon_id = paste("rinse-checklist", "taxon", vdigest(scientificName_phylum, algo="md5"), sep = ":"))
+raw_data %<>% mutate(taxon_id = paste("rinse-registry-checklist", "taxon", vdigest(scientificName_phylum, algo="md5"), sep = ":"))
 ```
 
 ## Further pre-processing:
@@ -243,18 +243,23 @@ taxon <- raw_data
 
 ## Pre-processing
 
-Some taxa in the checklist are duplicated, i.e. they are found in two rows instead of one (see [this issue](https://github.com/trias-project/rinse-registry-checklist/issues/8)). This is because these taxa have two contrasting distribution records which depend on the consulted resource (data based solely on DAISIE portal and data based on all sources). In the taxon core, we only want one row per taxon.
+Some taxa in the checklist are duplicated, i.e. they are found in two rows instead of one (see [this issue](https://github.com/trias-project/rinse-registry-checklist/issues/8)). This is because of two reasons:
 
-Identify taxa which have two distribution records:
+- most of these duplicated taxa have two contrasting distribution records which depend on the consulted resource (data based solely on DAISIE portal and data based on all sources). 
+- In one particular case, i.e. for _Elachista_, this is a homonym problem. 
+
+In the taxon core, we only want one row per taxon.  We want to keep the homonyms but remove the taxa which have two distribution records.
+
+Identify the rownumbers of the duplicated taxa (exclude _Elachista_):
 
 ```{r}
-taxon %>% filter(duplicated(taxon$raw_scientificName_clean)==TRUE)
+duplicated_taxa <- which(duplicated(taxon$raw_scientificName_clean) == TRUE & taxon$raw_genus != "Elachista")
 ```
 
-Remove duplicated rows:
+Exclude these from the taxon core:
 
 ```{r}
-taxon %<>% filter(duplicated(taxon$raw_scientificName_clean)==FALSE)
+taxon %<>% slice(-duplicated_taxa)
 ```
 
 ## Term mapping
@@ -291,7 +296,13 @@ taxon %<>% mutate(datasetID = "https://doi.org/10.15468/focajn")
 ### institutionCode
 
 ```{r}
-taxon %<>% mutate(institutionCode = "CU")
+taxon %<>% mutate(institutionCode = "University of Cambridge")
+```
+
+### accessRights
+
+```{r}
+taxon %<>% mutate(accesRights = "http://www.inbo.be/en/norms-for-data-use") 
 ```
 
 ### datasetName
@@ -590,7 +601,7 @@ Similar as for the taxon core, we remove the duplicated taxa:
 Remove duplicated rows:
 
 ```{r}
-species_profile %<>% filter(duplicated(species_profile$raw_scientificName_clean)==FALSE)
+species_profile %<>% slice(-duplicated_taxa)
 ```
 
 Show unique values:
